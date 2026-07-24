@@ -167,7 +167,7 @@ public class ShowDAO {
                      "FROM movies m " +
                      "LEFT JOIN shows s ON m.id = s.movie_id " +
                      "LEFT JOIN halls h ON s.hall_id = h.id " +
-                     "WHERE m.status = 'ACTIVE' " +
+                     "WHERE m.status = 'ACTIVE' AND (s.id IS NULL OR s.status = 'SCHEDULED') " +
                      "ORDER BY m.id, s.show_date, s.show_time";
                      
         try (Connection conn = DBUtils.getConnection();
@@ -199,10 +199,6 @@ public class ShowDAO {
                     int bookedSeats = rs.getInt("booked_seats");
                     int availableSeats = totalSeats - bookedSeats;
                     
-                    Showtime showtime = new Showtime(showId, time, hall, availableSeats, totalSeats);
-                    // Add date to Showtime if needed, or store it. Showtime currently expects just time.
-                    // We can abuse the `time` field to hold "date time" for display, or just display time.
-                    // Actually, let's format it as "dd/MM HH:mm" for better UI.
                     String displayTime = date.substring(0, 5) + " " + time;
                     Showtime st = new Showtime(showId, displayTime, hall, availableSeats, totalSeats);
                     st.setRawDate(date);
@@ -269,28 +265,35 @@ public class ShowDAO {
 
     public boolean addBatchShowsSpecificDates(int movieId, int hallId, List<java.time.LocalDate> dates, List<String> times) {
         String sql = "INSERT INTO shows (movie_id, hall_id, show_date, show_time, status) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        Connection conn = null;
+        try {
+            conn = DBUtils.getConnection();
             conn.setAutoCommit(false);
-            
-            for (java.time.LocalDate d : dates) {
-                for (String time : times) {
-                    stmt.setInt(1, movieId);
-                    stmt.setInt(2, hallId);
-                    stmt.setString(3, d.toString()); // YYYY-MM-DD
-                    stmt.setString(4, time + ":00"); // HH:mm:00
-                    stmt.setString(5, "SCHEDULED");
-                    stmt.addBatch();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                for (java.time.LocalDate d : dates) {
+                    for (String time : times) {
+                        stmt.setInt(1, movieId);
+                        stmt.setInt(2, hallId);
+                        stmt.setString(3, d.toString()); // YYYY-MM-DD
+                        stmt.setString(4, time + ":00"); // HH:mm:00
+                        stmt.setString(5, "SCHEDULED");
+                        stmt.addBatch();
+                    }
                 }
+                stmt.executeBatch();
+                conn.commit();
+                return true;
             }
-            
-            stmt.executeBatch();
-            conn.commit();
-            return true;
         } catch (SQLException e) {
             e.printStackTrace();
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
             return false;
+        } finally {
+            if (conn != null) {
+                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
         }
     }
 

@@ -13,6 +13,13 @@ public class DBUpdater {
             } catch (Exception e) { System.out.println(e.getMessage()); }
             
             try {
+                stmt.execute("ALTER TABLE shows ADD COLUMN snack_discount_id INT DEFAULT NULL AFTER show_time");
+            } catch (Exception e) { System.out.println(e.getMessage()); }
+            try {
+                stmt.execute("ALTER TABLE shows ADD FOREIGN KEY (snack_discount_id) REFERENCES discounts(id) ON DELETE SET NULL");
+            } catch (Exception e) { System.out.println(e.getMessage()); }
+            
+            try {
                 stmt.execute("ALTER TABLE snacks ADD COLUMN min_stock INT DEFAULT 10 AFTER quantity");
             } catch (Exception e) { System.out.println(e.getMessage()); }
 

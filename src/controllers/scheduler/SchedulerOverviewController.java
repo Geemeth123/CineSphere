@@ -71,8 +71,7 @@ public class SchedulerOverviewController implements Initializable {
         activeDiscountsLabel.setText(String.valueOf(activeDiscounts));
 
         // Table (Currently Showing)
-        List<ShowTableItem> shows = showDAO.getTodayShows();
-        ObservableList<ShowTableItem> observableList = FXCollections.observableArrayList(shows);
+        ObservableList<ShowTableItem> observableList = FXCollections.observableArrayList(todayShowsList);
         recentShowsTable.setItems(observableList);
         
         loadPendingMovies();

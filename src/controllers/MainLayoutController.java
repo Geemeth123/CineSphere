@@ -175,4 +175,19 @@ public class MainLayoutController {
         }
         loadPage(fxmlPath);
     }
+    
+    public void loadPageDirectly(javafx.scene.Parent root) {
+        for (Button btn : navButtons) {
+            if (!btn.getStyleClass().contains("nav-button")) {
+                btn.getStyleClass().add("nav-button");
+            }
+            btn.getStyleClass().remove("nav-button-active");
+        }
+        contentArea.getChildren().clear();
+        contentArea.getChildren().add(root);
+    }
+    
+    public User getCurrentUser() {
+        return currentUser;
+    }
 }

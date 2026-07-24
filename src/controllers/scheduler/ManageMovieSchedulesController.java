@@ -12,6 +12,7 @@ import models.Movie;
 import models.ShowDAO;
 import models.Showtime;
 import models.MovieDAO;
+import controllers.MainLayoutController;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -106,16 +107,7 @@ public class ManageMovieSchedulesController {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             int showId = Integer.parseInt(st.getId().replace("SH-", ""));
             if (showDAO.deleteShow(showId)) {
-                // Refresh the movie's showtimes from DB
-                for (Movie m : showDAO.getAllActiveMoviesWithShows()) {
-                    if (m.getId().equals(movie.getId())) {
-                        this.movie = m;
-                        loadData();
-                        return;
-                    }
-                }
-                // If movie has no shows left, it won't be in the list, so clear shows
-                this.movie.getShowtimes().clear();
+                this.movie.getShowtimes().remove(st);
                 loadData();
             } else {
                 Alert err = new Alert(Alert.AlertType.ERROR, "Failed to cancel show. It may have active bookings.");
@@ -126,18 +118,7 @@ public class ManageMovieSchedulesController {
 
     @FXML
     private void handleBack(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/scheduler/ShowScheduling.fxml"));
-            Parent root = loader.load();
-            
-            StackPane contentArea = (StackPane) movieTitleLabel.getScene().lookup("#contentArea");
-            if (contentArea != null) {
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(root);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        MainLayoutController.getInstance().loadPageDirectly("/views/scheduler/ShowScheduling.fxml");
     }
 
     @FXML
@@ -148,13 +129,10 @@ public class ManageMovieSchedulesController {
             
             ScheduleMovieController controller = loader.getController();
             controller.setMovie(this.movie); // Pass the current movie to ScheduleMovie
+            controller.setPreviousPage("/views/scheduler/ShowScheduling.fxml");
             
-            StackPane contentArea = (StackPane) movieTitleLabel.getScene().lookup("#contentArea");
-            if (contentArea != null) {
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(root);
-            }
-        } catch (IOException e) {
+            controllers.MainLayoutController.getInstance().loadPageDirectly(root);
+        } catch (java.io.IOException e) {
             e.printStackTrace();
         }
     }

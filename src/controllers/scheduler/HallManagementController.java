@@ -168,11 +168,7 @@ public class HallManagementController implements Initializable {
             EditHallController controller = loader.getController();
             controller.setHallData(hall);
             
-            StackPane contentArea = (StackPane) mainContent.getScene().lookup("#contentArea");
-            if (contentArea != null) {
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(root);
-            }
+            MainLayoutController.getInstance().loadPageDirectly(root);
         } catch (IOException e) {
             e.printStackTrace();
         }

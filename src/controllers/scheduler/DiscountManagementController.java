@@ -19,6 +19,8 @@ import models.ShowDAO;
 import models.ShowTableItem;
 import models.PromoCode;
 import models.PromoCodeDAO;
+import models.Snack;
+import models.SnackDAO;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -49,6 +51,7 @@ public class DiscountManagementController implements Initializable {
     private MovieDAO movieDAO = new MovieDAO();
     private ShowDAO showDAO = new ShowDAO();
     private PromoCodeDAO promoCodeDAO = new PromoCodeDAO();
+    private SnackDAO snackDAO = new SnackDAO();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -134,11 +137,11 @@ public class DiscountManagementController implements Initializable {
         typeCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             itemCombo.getItems().clear();
             if ("MOVIE".equals(newVal)) {
-                itemCombo.setItems(FXCollections.observableArrayList(movieDAO.getAllMovies()));
+                itemCombo.setItems(FXCollections.observableArrayList(movieDAO.getMoviesForScheduling()));
             } else if ("SHOW".equals(newVal)) {
                 itemCombo.setItems(FXCollections.observableArrayList(showDAO.getUpcomingShows()));
             } else if ("SNACK".equals(newVal)) {
-                itemCombo.getItems().add("Wait for Snack Impl");
+                itemCombo.setItems(FXCollections.observableArrayList(snackDAO.getAllSnacks()));
             }
         });
 
@@ -170,11 +173,17 @@ public class DiscountManagementController implements Initializable {
                     if (type == null || item == null || pctStr.isEmpty() || status == null) return null;
                     
                     BigDecimal pct = new BigDecimal(pctStr);
+                    if (pct.compareTo(BigDecimal.ZERO) < 0 || pct.compareTo(new BigDecimal(100)) > 0) {
+                        return null;
+                    }
+                    
                     int targetId = 0;
                     if (item instanceof Movie) {
                         targetId = Integer.parseInt(((Movie)item).getId().replace("M", ""));
                     } else if (item instanceof ShowTableItem) {
                         targetId = Integer.parseInt(((ShowTableItem)item).getShowId().replace("SH-", ""));
+                    } else if (item instanceof Snack) {
+                        targetId = ((Snack)item).getId();
                     }
                     
                     Discount d = new Discount(0, type, targetId, pct, status, null, null);
@@ -287,6 +296,10 @@ public class DiscountManagementController implements Initializable {
                     if (code.isEmpty() || pctStr.isEmpty() || status == null) return null;
                     
                     BigDecimal pct = new BigDecimal(pctStr);
+                    if (pct.compareTo(BigDecimal.ZERO) < 0 || pct.compareTo(new BigDecimal(100)) > 0) {
+                        return null;
+                    }
+                    
                     return new PromoCode(0, code, pct, status, null);
                 } catch (Exception e) {
                     return null;

@@ -44,6 +44,11 @@ public class ScheduleMovieController implements Initializable {
     private ShowDAO showDAO = new ShowDAO();
     private List<LocalDate> addedDates = new ArrayList<>();
     private List<String> addedTimes = new ArrayList<>();
+    private String previousPage = "/views/scheduler/ShowScheduling.fxml";
+
+    public void setPreviousPage(String fxmlPath) {
+        this.previousPage = fxmlPath;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -205,6 +210,21 @@ public class ScheduleMovieController implements Initializable {
             runtimeMins = Integer.parseInt(currentMovie.getRuntime().replace(" mins", "").trim());
         } catch (Exception e) {}
 
+        // Internal conflict detection
+        for (int i = 0; i < addedTimes.size(); i++) {
+            LocalTime start1 = LocalTime.parse(addedTimes.get(i));
+            LocalTime end1 = start1.plusMinutes(runtimeMins);
+            for (int j = i + 1; j < addedTimes.size(); j++) {
+                LocalTime start2 = LocalTime.parse(addedTimes.get(j));
+                LocalTime end2 = start2.plusMinutes(runtimeMins);
+                
+                if (start1.isBefore(end2) && start2.isBefore(end1)) {
+                    showError("Conflict Detected: Added times " + addedTimes.get(i) + " and " + addedTimes.get(j) + " overlap. Please remove one.");
+                    return;
+                }
+            }
+        }
+
         for (LocalDate d : addedDates) {
             for (String t : addedTimes) {
                 LocalTime start = LocalTime.parse(t);
@@ -231,7 +251,7 @@ public class ScheduleMovieController implements Initializable {
 
     @FXML
     public void handleBack(ActionEvent event) {
-        MainLayoutController.getInstance().loadPageDirectly("/views/scheduler/ShowScheduling.fxml");
+        MainLayoutController.getInstance().loadPageDirectly(previousPage);
     }
 
     private void showError(String message) {

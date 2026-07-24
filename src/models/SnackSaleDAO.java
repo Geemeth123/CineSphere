@@ -8,9 +8,9 @@ import java.util.List;
 public class SnackSaleDAO {
 
     public boolean createSale(SnackSale sale, List<SnackSaleItem> items) {
-        String insertSaleQuery = "INSERT INTO snack_sales (booking_id, total_amount) VALUES (?, ?)";
+        String insertSaleQuery = "INSERT INTO snack_sales (booking_id, user_id, total_amount) VALUES (?, ?, ?)";
         String insertItemQuery = "INSERT INTO snack_sale_items (snack_sale_id, snack_id, quantity, price_at_sale, discount_applied) VALUES (?, ?, ?, ?, ?)";
-        String updateStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ?";
+        String updateStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
 
         Connection conn = null;
         try {
@@ -25,7 +25,12 @@ public class SnackSaleDAO {
                 } else {
                     stmt.setNull(1, Types.INTEGER);
                 }
-                stmt.setBigDecimal(2, sale.getTotalAmount());
+                if (sale.getUserId() != null) {
+                    stmt.setInt(2, sale.getUserId());
+                } else {
+                    stmt.setNull(2, Types.INTEGER);
+                }
+                stmt.setBigDecimal(3, sale.getTotalAmount());
                 
                 stmt.executeUpdate();
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -57,11 +62,16 @@ public class SnackSaleDAO {
                     // Update Stock
                     stockStmt.setInt(1, item.getQuantity());
                     stockStmt.setInt(2, item.getSnackId());
-                    stockStmt.addBatch();
+                    stockStmt.setInt(3, item.getQuantity());
+                    
+                    int updated = stockStmt.executeUpdate();
+                    if (updated == 0) {
+                        conn.rollback(); // Insufficient stock or snack deleted
+                        return false;
+                    }
                 }
                 
                 itemStmt.executeBatch();
-                stockStmt.executeBatch();
             }
 
             conn.commit();
@@ -141,7 +151,7 @@ public class SnackSaleDAO {
 
     public List<SnackSaleItem> getItemsForSale(int saleId) {
         List<SnackSaleItem> items = new ArrayList<>();
-        String query = "SELECT si.*, s.name as snack_name FROM snack_sale_items si JOIN snacks s ON si.snack_id = s.id WHERE si.snack_sale_id = ?";
+        String query = "SELECT si.*, s.name as snack_name FROM snack_sale_items si LEFT JOIN snacks s ON si.snack_id = s.id WHERE si.snack_sale_id = ?";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
              

@@ -93,12 +93,25 @@ public class SnackDAO {
     }
 
     public boolean updateSnackQuantity(int snackId, int quantityChange) {
-        String query = "UPDATE snacks SET quantity = quantity + ? WHERE id = ?";
+        String query = "UPDATE snacks SET quantity = quantity + ? WHERE id = ? AND quantity + ? >= 0";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
              
             stmt.setInt(1, quantityChange);
             stmt.setInt(2, snackId);
+            stmt.setInt(3, quantityChange);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteSnack(int id) {
+        String query = "DELETE FROM snacks WHERE id = ?";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

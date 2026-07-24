@@ -16,7 +16,9 @@ public class AddSnackController {
     @FXML private ComboBox<String> categoryCombo;
     @FXML private TextArea descArea;
     @FXML private TextField priceField;
+    @FXML private TextField costPriceField;
     @FXML private TextField quantityField;
+    @FXML private TextField minStockField;
     @FXML private ComboBox<String> statusCombo;
     @FXML private Label imagePathLabel;
 
@@ -45,7 +47,9 @@ public class AddSnackController {
             categoryCombo.setValue(snack.getCategory());
             descArea.setText(snack.getDescription());
             priceField.setText(snack.getPrice().toString());
+            costPriceField.setText(snack.getCostPrice() != null ? snack.getCostPrice().toString() : "0.00");
             quantityField.setText(String.valueOf(snack.getQuantity()));
+            minStockField.setText(String.valueOf(snack.getMinStock()));
             statusCombo.setValue(snack.getStatus());
             if (snack.getImagePath() != null) {
                 imagePathLabel.setText("Current Image: " + snack.getImagePath());
@@ -54,6 +58,8 @@ public class AddSnackController {
             titleLabel.setText("Add New Snack");
             statusCombo.setValue("ACTIVE");
             quantityField.setText("0");
+            minStockField.setText("10");
+            costPriceField.setText("0.00");
             imagePathLabel.setText("No file selected");
         }
     }
@@ -86,7 +92,9 @@ public class AddSnackController {
         currentSnack.setCategory(categoryCombo.getValue());
         currentSnack.setDescription(descArea.getText());
         currentSnack.setPrice(new BigDecimal(priceField.getText()));
+        currentSnack.setCostPrice(new BigDecimal(costPriceField.getText()));
         currentSnack.setQuantity(Integer.parseInt(quantityField.getText()));
+        currentSnack.setMinStock(Integer.parseInt(minStockField.getText()));
         currentSnack.setStatus(statusCombo.getValue());
 
         if (selectedImageFile != null) {
@@ -131,7 +139,9 @@ public class AddSnackController {
     private boolean validateInput() {
         String name = nameField.getText();
         String priceStr = priceField.getText();
+        String costPriceStr = costPriceField.getText();
         String qtyStr = quantityField.getText();
+        String minStockStr = minStockField.getText();
 
         if (name == null || name.trim().isEmpty()) {
             showAlert("Validation Error", "Name is required.");
@@ -149,6 +159,12 @@ public class AddSnackController {
                 showAlert("Validation Error", "Price cannot be negative.");
                 return false;
             }
+            
+            BigDecimal cp = new BigDecimal(costPriceStr);
+            if (cp.compareTo(BigDecimal.ZERO) < 0) {
+                showAlert("Validation Error", "Cost price cannot be negative.");
+                return false;
+            }
         } catch (NumberFormatException e) {
             showAlert("Validation Error", "Price must be a valid number.");
             return false;
@@ -158,6 +174,12 @@ public class AddSnackController {
             int q = Integer.parseInt(qtyStr);
             if (q < 0) {
                 showAlert("Validation Error", "Quantity cannot be negative.");
+                return false;
+            }
+            
+            int ms = Integer.parseInt(minStockStr);
+            if (ms < 0) {
+                showAlert("Validation Error", "Min stock cannot be negative.");
                 return false;
             }
         } catch (NumberFormatException e) {

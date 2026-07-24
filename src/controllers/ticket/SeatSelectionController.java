@@ -51,18 +51,27 @@ public class SeatSelectionController {
     }
 
     private void generateSeatGrid() {
-        models.BookingDAO dao = new models.BookingDAO();
-        int[] dims = dao.getHallDimensions(showId);
-        int rows = dims[0];
-        int cols = dims[1];
-        
-        List<String> mockBooked = dao.getBookedSeats(showId);
-        
-        int hallId = dao.getHallId(showId);
-        models.HallDAO hallDAO = new models.HallDAO();
-        List<String> maintenanceSeats = hallDAO.getMaintenanceSeats(hallId);
-        
-        buildSeatGrid(rows, cols, mockBooked, maintenanceSeats);
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                models.BookingDAO dao = new models.BookingDAO();
+                int[] dims = dao.getHallDimensions(showId);
+                int rows = dims[0];
+                int cols = dims[1];
+                
+                List<String> mockBooked = dao.getBookedSeats(showId);
+                
+                int hallId = dao.getHallId(showId);
+                models.HallDAO hallDAO = new models.HallDAO();
+                List<String> maintenanceSeats = hallDAO.getMaintenanceSeats(hallId);
+                
+                javafx.application.Platform.runLater(() -> {
+                    buildSeatGrid(rows, cols, mockBooked, maintenanceSeats);
+                });
+                return null;
+            }
+        };
+        new Thread(task).start();
     }
 
     // Reusable method for rendering a seat grid given specific data
@@ -241,41 +250,59 @@ public class SeatSelectionController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            proceedBtn.setDisable(true);
+            proceedBtn.setText("Booking...");
             
-            // 1. Save Booking to DB
-            models.BookingDAO dao = new models.BookingDAO();
-            // Using a dummy user ID = 2 for Counter Staff
-            String bookingId = dao.createBooking(showId, 2, adultCount, childCount, total, selectedSeats);
-            
-            if (bookingId != null) {
-                System.out.println("Booking confirmed and saved to DB! ID: " + bookingId);
-                
-                // Route to Booking Confirmed
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ticket/BookingConfirmed.fxml"));
-                    Parent root = loader.load();
-                    
-                    BookingConfirmedController controller = loader.getController();
-                    controller.setReceiptData(
-                        bookingId,
-                        movieTitle,
-                        showtimeDetails,
-                        String.join(", ", selectedSeats),
-                        formattedTotal
-                    );
-                    
-                    StackPane contentArea = (StackPane) proceedBtn.getScene().lookup("#contentArea");
-                    if (contentArea != null) {
-                        contentArea.getChildren().clear();
-                        contentArea.getChildren().add(root);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            javafx.concurrent.Task<String> task = new javafx.concurrent.Task<String>() {
+                @Override
+                protected String call() throws Exception {
+                    models.BookingDAO dao = new models.BookingDAO();
+                    // Using a dummy user ID = 2 for Counter Staff
+                    return dao.createBooking(showId, 2, adultCount, childCount, total, selectedSeats);
                 }
-            } else {
-                Alert err = new Alert(Alert.AlertType.ERROR, "Failed to save booking to database!");
+            };
+            
+            task.setOnSucceeded(e -> {
+                String bookingId = task.getValue();
+                if (bookingId != null) {
+                    System.out.println("Booking confirmed and saved to DB! ID: " + bookingId);
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ticket/BookingConfirmed.fxml"));
+                        Parent root = loader.load();
+                        
+                        BookingConfirmedController controller = loader.getController();
+                        controller.setReceiptData(
+                            bookingId,
+                            movieTitle,
+                            showtimeDetails,
+                            String.join(", ", selectedSeats),
+                            formattedTotal
+                        );
+                        
+                        StackPane contentArea = (StackPane) proceedBtn.getScene().lookup("#contentArea");
+                        if (contentArea != null) {
+                            contentArea.getChildren().clear();
+                            contentArea.getChildren().add(root);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                } else {
+                    Alert err = new Alert(Alert.AlertType.ERROR, "Failed to save booking to database!");
+                    err.show();
+                    proceedBtn.setText("Proceed to Booking");
+                    updateSummary();
+                }
+            });
+            
+            task.setOnFailed(e -> {
+                Alert err = new Alert(Alert.AlertType.ERROR, "An error occurred during booking!");
                 err.show();
-            }
+                proceedBtn.setText("Proceed to Booking");
+                updateSummary();
+            });
+            
+            new Thread(task).start();
         }
     }
 }

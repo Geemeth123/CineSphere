@@ -125,12 +125,9 @@ public class PendingShowsController implements Initializable {
             
             ScheduleMovieController controller = loader.getController();
             controller.setMovie(movie);
+            controller.setPreviousPage("/views/scheduler/PendingShows.fxml");
             
-            StackPane contentArea = (StackPane) moviesGrid.getScene().lookup("#contentArea");
-            if (contentArea != null) {
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(root);
-            }
+            controllers.MainLayoutController.getInstance().loadPageDirectly(root);
         } catch (java.io.IOException e) {
             e.printStackTrace();
         }

@@ -67,10 +67,12 @@ CREATE TABLE IF NOT EXISTS shows (
     hall_id INT NOT NULL,
     show_date DATE NOT NULL,
     show_time TIME NOT NULL,
+    snack_discount_id INT DEFAULT NULL,
     status ENUM('SCHEDULED', 'CANCELLED', 'COMPLETED') NOT NULL DEFAULT 'SCHEDULED',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
-    FOREIGN KEY (hall_id) REFERENCES halls(id) ON DELETE CASCADE
+    FOREIGN KEY (hall_id) REFERENCES halls(id) ON DELETE CASCADE,
+    FOREIGN KEY (snack_discount_id) REFERENCES discounts(id) ON DELETE SET NULL
 );
 
 -- 6. Bookings Table
@@ -194,4 +196,26 @@ END //
 DELIMITER ;
 
 CALL fully_book_show(6); -- Fully books "Despicable Me 4" in Hall 3
+
+-- 17. Discounts Table
+CREATE TABLE IF NOT EXISTS discounts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type ENUM('MOVIE', 'SHOW', 'SNACK') NOT NULL,
+    target_id INT NOT NULL,
+    percentage DECIMAL(5,2) NOT NULL,
+    status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 18. Snack Sales Table
+CREATE TABLE IF NOT EXISTS snack_sales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT DEFAULT NULL,
+    user_id INT DEFAULT NULL,
+    total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    sale_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
 

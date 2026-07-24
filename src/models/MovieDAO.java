@@ -20,25 +20,7 @@ public class MovieDAO {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                String id = "M" + rs.getInt("id");
-                String title = rs.getString("title");
-                String genre = rs.getString("genre");
-                String duration = rs.getInt("duration_minutes") + " mins";
-                String description = rs.getString("description");
-                
-                Movie movie = new Movie(id, title, genre, duration, description, new ArrayList<>());
-                movie.setTmdbId(rs.getInt("tmdb_id"));
-                if (rs.wasNull()) {
-                    movie.setTmdbId(-1);
-                }
-                movie.setPosterPath(rs.getString("poster_path"));
-                movie.setBannerPath(rs.getString("banner_path"));
-                movie.setShowingFrom(rs.getString("showing_from"));
-                movie.setShowingUntil(rs.getString("showing_until"));
-                movie.setAdultPrice(rs.getDouble("adult_price"));
-                movie.setKidsPrice(rs.getDouble("kids_price"));
-                
-                movies.add(movie);
+                movies.add(mapRowToMovie(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -174,7 +156,7 @@ public class MovieDAO {
         return false;
     }
 
-    public List<Movie> getAllMovies() {
+    public List<Movie> getMoviesForScheduling() {
         return getActiveMovies(); // For scheduling, we only care about active movies
     }
 
@@ -185,29 +167,7 @@ public class MovieDAO {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    String movieId = "M" + rs.getInt("id");
-                    String title = rs.getString("title");
-                    String genre = rs.getString("genre");
-                    String duration = rs.getInt("duration_minutes") + " mins";
-                    String description = rs.getString("description");
-                    
-                    Movie movie = new Movie(movieId, title, genre, duration, description, new ArrayList<>());
-                    movie.setTmdbId(rs.getInt("tmdb_id"));
-                    if (rs.wasNull()) {
-                        movie.setTmdbId(-1);
-                    }
-                    movie.setPosterPath(rs.getString("poster_path"));
-                    movie.setBannerPath(rs.getString("banner_path"));
-                    movie.setShowingFrom(rs.getString("showing_from"));
-                    movie.setShowingUntil(rs.getString("showing_until"));
-                    movie.setAdultPrice(rs.getDouble("adult_price"));
-                    movie.setKidsPrice(rs.getDouble("kids_price"));
-                    movie.setRating(rs.getDouble("rating"));
-                    movie.setPopularity(rs.getDouble("popularity"));
-                    movie.setReleaseDate(rs.getString("release_date"));
-                    movie.setTagline(rs.getString("tagline"));
-                    
-                    return movie;
+                    return mapRowToMovie(rs);
                 }
             }
         } catch (SQLException e) {
@@ -225,29 +185,7 @@ public class MovieDAO {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                String id = "M" + rs.getInt("id");
-                String title = rs.getString("title");
-                String genre = rs.getString("genre");
-                String duration = rs.getInt("duration_minutes") + " mins";
-                String description = rs.getString("description");
-                
-                Movie movie = new Movie(id, title, genre, duration, description, new ArrayList<>());
-                movie.setTmdbId(rs.getInt("tmdb_id"));
-                if (rs.wasNull()) {
-                    movie.setTmdbId(-1);
-                }
-                movie.setPosterPath(rs.getString("poster_path"));
-                movie.setBannerPath(rs.getString("banner_path"));
-                movie.setShowingFrom(rs.getString("showing_from"));
-                movie.setShowingUntil(rs.getString("showing_until"));
-                movie.setAdultPrice(rs.getDouble("adult_price"));
-                movie.setKidsPrice(rs.getDouble("kids_price"));
-                movie.setRating(rs.getDouble("rating"));
-                movie.setPopularity(rs.getDouble("popularity"));
-                movie.setReleaseDate(rs.getString("release_date"));
-                movie.setTagline(rs.getString("tagline"));
-                
-                movies.add(movie);
+                movies.add(mapRowToMovie(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -277,5 +215,23 @@ public class MovieDAO {
             e.printStackTrace();
         }
         return "No Data Yet";
+    }
+
+    private Movie mapRowToMovie(ResultSet rs) throws SQLException {
+        Movie m = new Movie(
+                "M" + rs.getInt("id"),
+                rs.getString("title"),
+                rs.getString("genre"),
+                rs.getInt("duration_minutes") + " mins",
+                rs.getString("description"),
+                new ArrayList<>() // We will fetch shows separately if needed
+        );
+        m.setPosterPath(rs.getString("poster_path"));
+        m.setBannerPath(rs.getString("banner_path"));
+        m.setAdultPrice(rs.getDouble("adult_price"));
+        m.setKidsPrice(rs.getDouble("kids_price"));
+        m.setShowingFrom(rs.getString("showing_from"));
+        m.setShowingUntil(rs.getString("showing_until"));
+        return m;
     }
 }

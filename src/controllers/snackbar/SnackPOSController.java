@@ -362,15 +362,15 @@ public class SnackPOSController {
         if (code == null || code.trim().isEmpty()) {
             currentDiscountPercentage = BigDecimal.ZERO;
             showAlert("Error", "Please enter a discount code.");
-        } else if ("STAFF10".equalsIgnoreCase(code.trim())) {
-            currentDiscountPercentage = new BigDecimal("10.00");
-            showAlert("Success", "10% Discount Applied!");
-        } else if ("PROMO20".equalsIgnoreCase(code.trim())) {
-            currentDiscountPercentage = new BigDecimal("20.00");
-            showAlert("Success", "20% Discount Applied!");
         } else {
-            currentDiscountPercentage = BigDecimal.ZERO;
-            showAlert("Error", "Invalid discount code.");
+            models.PromoCode promo = new models.PromoCodeDAO().getPromoCode(code.trim());
+            if (promo != null) {
+                currentDiscountPercentage = promo.getDiscountPercentage();
+                showAlert("Success", currentDiscountPercentage + "% Discount Applied!");
+            } else {
+                currentDiscountPercentage = BigDecimal.ZERO;
+                showAlert("Error", "Invalid or inactive discount code.");
+            }
         }
         updateTotals();
     }
@@ -425,8 +425,12 @@ public class SnackPOSController {
             SnackSale sale = new SnackSale();
             sale.setTotalAmount(finalTotal);
             sale.setBookingId(currentBookingId);
-            // Defaulting user_id to 1 (Admin) for now as there's no global SessionManager
-            sale.setUserId(1);
+            
+            int userId = 1; // Default fallback
+            if (controllers.MainLayoutController.getInstance() != null && controllers.MainLayoutController.getInstance().getCurrentUser() != null) {
+                userId = controllers.MainLayoutController.getInstance().getCurrentUser().getId();
+            }
+            sale.setUserId(userId);
 
             List<SnackSaleItem> itemsToSave = new ArrayList<>();
             for (SnackSaleItem cItem : cartData) {
