@@ -132,7 +132,15 @@ public class MainLayoutController {
             contentArea.getChildren().add(root);
         } catch (IOException e) {
             e.printStackTrace();
-            Label errorLabel = new Label("Failed to load page: " + fxmlPath);
+            String errorMsg = "Failed to load page: " + fxmlPath + "\n";
+            errorMsg += e.toString() + "\n";
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                errorMsg += "Caused by: " + cause.toString() + "\n";
+                cause = cause.getCause();
+            }
+            Label errorLabel = new Label(errorMsg);
+            errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
             contentArea.getChildren().clear();
             contentArea.getChildren().add(errorLabel);
         }

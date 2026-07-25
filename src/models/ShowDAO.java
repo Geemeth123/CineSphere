@@ -234,17 +234,16 @@ public class ShowDAO {
 
     public boolean isHallOccupied(int hallId, String date, String start, String end) {
         String sql = "SELECT COUNT(*) FROM shows s " +
-                     "JOIN movies m ON s.movie_id = m.id " +
                      "WHERE s.hall_id = ? AND s.show_date = ? AND s.status != 'CANCELLED' " +
                      "AND ( " +
-                     "  (s.show_time <= ? AND ADDTIME(s.show_time, SEC_TO_TIME(m.duration_minutes * 60)) > ?) " +
+                     "  (STR_TO_DATE(s.show_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i') " +
+                     "   AND ADDTIME(STR_TO_DATE(s.show_time, '%H:%i'), (SELECT SEC_TO_TIME(duration_minutes*60) FROM movies WHERE id=s.movie_id)) > STR_TO_DATE(?, '%H:%i')) " +
                      "  OR " +
-                     "  (s.show_time >= ? AND s.show_time < ?) " +
+                     "  (STR_TO_DATE(s.show_time, '%H:%i') >= STR_TO_DATE(?, '%H:%i') " +
+                     "   AND STR_TO_DATE(s.show_time, '%H:%i') < STR_TO_DATE(?, '%H:%i')) " +
                      ")";
-                     
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             stmt.setInt(1, hallId);
             stmt.setString(2, date);
             stmt.setString(3, start); // new start
@@ -322,6 +321,22 @@ public class ShowDAO {
             
             stmt.setInt(1, showId);
             return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean hasUpcomingShows(int hallId) {
+        String sql = "SELECT COUNT(*) FROM shows WHERE hall_id = ? AND show_date >= CURRENT_DATE AND status != 'CANCELLED'";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, hallId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

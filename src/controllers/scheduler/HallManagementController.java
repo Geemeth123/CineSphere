@@ -13,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import models.Hall;
 import models.HallDAO;
+import models.ShowDAO;
 import controllers.MainLayoutController;
 
 import java.io.IOException;
@@ -176,6 +177,15 @@ public class HallManagementController implements Initializable {
 
     private void handleToggleStatus(Hall hall) {
         if (hall.getStatus().equals("ACTIVE")) {
+            ShowDAO showDAO = new ShowDAO();
+            if (showDAO.hasUpcomingShows(hall.getId())) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Cannot Lock Hall");
+                alert.setHeaderText("Upcoming Shows Detected");
+                alert.setContentText("This hall has upcoming shows scheduled. Please cancel or reschedule them before putting the hall into maintenance.");
+                alert.showAndWait();
+                return;
+            }
             hall.setStatus("MAINTENANCE");
         } else {
             hall.setStatus("ACTIVE");
