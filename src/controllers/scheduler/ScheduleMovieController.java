@@ -53,7 +53,13 @@ public class ScheduleMovieController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         List<Hall> halls = hallDAO.getAllHalls();
-        hallComboBox.setItems(FXCollections.observableArrayList(halls));
+        List<Hall> activeHalls = new ArrayList<>();
+        for (Hall h : halls) {
+            if ("ACTIVE".equalsIgnoreCase(h.getStatus())) {
+                activeHalls.add(h);
+            }
+        }
+        hallComboBox.setItems(FXCollections.observableArrayList(activeHalls));
     }
 
     public void setMovie(Movie movie) {

@@ -32,7 +32,7 @@ public class BookingTicketController {
     public void initialize() {
         // Load live movies from DB
         models.ShowDAO dao = new models.ShowDAO();
-        ObservableList<Movie> movies = FXCollections.observableArrayList(dao.getActiveMoviesWithShowtimes());
+        ObservableList<Movie> movies = FXCollections.observableArrayList(dao.getAllActiveMoviesWithShows());
 
         javafx.collections.transformation.FilteredList<Movie> filteredData = new javafx.collections.transformation.FilteredList<>(movies, p -> true);
         if (searchField != null) {

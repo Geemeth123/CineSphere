@@ -68,44 +68,82 @@ public class MovieDetailsController {
 
     public void setLocalMovie(Movie movie) {
         this.localMovie = movie;
-        if (movie.getTmdbId() > 0) {
+        if (movie != null && movie.getTmdbId() > 0) {
             this.currentMovieId = movie.getTmdbId();
             new Thread(() -> {
                 MovieDTO dto = TMDBUtils.getMovieDetails(currentMovieId);
                 this.currentFetchedDto = dto;
                 Platform.runLater(() -> {
-                    populateDetails(dto);
+                    if (dto != null) {
+                        populateDetails(dto);
+                    } else {
+                        populateLocalDetails(movie);
+                    }
                     updateActionButtons();
                 });
             }).start();
-        } else {
-            // Populate from local DB
-            titleLabel.setText(movie.getTitle());
-            overviewLabel.setText(movie.getDescription());
-            durationLabel.setText("⏱ " + movie.getRuntime());
-
-            if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
-                String posterUrl = movie.getPosterPath().startsWith("http") ? movie.getPosterPath() : TMDBUtils.getImageUrl(movie.getPosterPath(), "w500");
-                posterImage.setImage(new Image(posterUrl, true));
-            }
-            if (movie.getBannerPath() != null && !movie.getBannerPath().isEmpty()) {
-                String bannerUrl = movie.getBannerPath().startsWith("http") ? movie.getBannerPath() : TMDBUtils.getImageUrl(movie.getBannerPath(), "original");
-                heroBanner.setStyle("-fx-background-image: url('" + bannerUrl + "'); -fx-background-size: cover; -fx-background-position: center;");
-            }
+        } else if (movie != null) {
+            populateLocalDetails(movie);
             updateActionButtons();
         }
     }
 
     public void setMovieId(int tmdbId) {
         this.currentMovieId = tmdbId;
+        if (tmdbId <= 0) return;
         new Thread(() -> {
             MovieDTO dto = TMDBUtils.getMovieDetails(tmdbId);
             this.currentFetchedDto = dto;
             Platform.runLater(() -> {
-                populateDetails(dto);
+                if (dto != null) {
+                    populateDetails(dto);
+                } else if (localMovie != null) {
+                    populateLocalDetails(localMovie);
+                } else {
+                    titleLabel.setText("Movie Details");
+                }
                 updateActionButtons();
             });
         }).start();
+    }
+
+    private void populateLocalDetails(Movie movie) {
+        if (movie == null) return;
+        titleLabel.setText(movie.getTitle());
+        taglineLabel.setText(movie.getTagline() != null && !movie.getTagline().isEmpty() ? "\"" + movie.getTagline() + "\"" : "");
+        ratingLabel.setText(String.format("⭐ %.1f", movie.getRating()));
+
+        if (movie.getReleaseDate() != null && movie.getReleaseDate().length() >= 4) {
+            yearLabel.setText(movie.getReleaseDate().substring(0, 4));
+        } else {
+            yearLabel.setText("2024");
+        }
+
+        languageLabel.setText("EN");
+        durationLabel.setText("⏱ " + movie.getRuntime());
+        popularityLabel.setText("Popularity: " + movie.getPopularity() + " • Active Theater Showing");
+        overviewLabel.setText(movie.getDescription());
+
+        genresBox.getChildren().clear();
+        if (movie.getGenre() != null) {
+            Label gLabel = new Label(movie.getGenre());
+            gLabel.getStyleClass().add("genre-badge");
+            genresBox.getChildren().add(gLabel);
+        }
+
+        if (movie.getBannerPath() != null && !movie.getBannerPath().isEmpty()) {
+            String bannerUrl = movie.getBannerPath().startsWith("http") ? movie.getBannerPath() : (movie.getBannerPath().startsWith("file:") ? movie.getBannerPath() : "file:" + movie.getBannerPath());
+            try {
+                heroBanner.setStyle("-fx-background-image: url('" + bannerUrl + "'); -fx-background-size: cover; -fx-background-position: center;");
+            } catch (Exception e) {}
+        }
+
+        if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
+            String posterUrl = movie.getPosterPath().startsWith("http") ? movie.getPosterPath() : (movie.getPosterPath().startsWith("file:") ? movie.getPosterPath() : "file:" + movie.getPosterPath());
+            try {
+                posterImage.setImage(new Image(posterUrl, true));
+            } catch (Exception e) {}
+        }
     }
 
     private void updateActionButtons() {

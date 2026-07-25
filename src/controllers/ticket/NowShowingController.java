@@ -11,8 +11,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
-import models.MovieDTO;
-import utils.TMDBUtils;
+import models.Movie;
+import models.MovieDAO;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,65 +23,36 @@ public class NowShowingController {
     @FXML private TextField searchField;
     @FXML private FlowPane moviesGrid;
 
-    private List<MovieDTO> allMovies;
+    private List<Movie> allMovies;
 
     @FXML
     public void initialize() {
-        genreFilterCombo.getItems().addAll("All Genres", "Action", "Comedy", "Drama", "Science Fiction", "Horror", "Thriller");
+        genreFilterCombo.getItems().addAll("All Genres", "Action", "Comedy", "Drama", "Science Fiction", "Horror", "Thriller", "Animation");
         genreFilterCombo.getSelectionModel().selectFirst();
         
         genreFilterCombo.valueProperty().addListener((obs, oldVal, newVal) -> filterMovies());
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterMovies());
         
         // Show loading spinner
-        javafx.scene.layout.VBox loaderContainer = new javafx.scene.layout.VBox(15);
-        loaderContainer.setAlignment(javafx.geometry.Pos.CENTER);
-        loaderContainer.setPadding(new javafx.geometry.Insets(100, 0, 0, 0));
+        VBox loaderContainer = new VBox(15);
+        loaderContainer.setAlignment(Pos.CENTER);
+        loaderContainer.setPadding(new Insets(100, 0, 0, 0));
         
         atlantafx.base.controls.RingProgressIndicator loader = new atlantafx.base.controls.RingProgressIndicator();
         loader.setProgress(-1); // Indeterminate
         
-        javafx.scene.control.Label waitLbl = new javafx.scene.control.Label("Please wait, loading movies...");
+        Label waitLbl = new Label("Please wait, loading movies...");
         waitLbl.setStyle("-fx-font-size: 16px; -fx-text-fill: #6c757d;");
         
         loaderContainer.getChildren().addAll(loader, waitLbl);
         moviesGrid.getChildren().clear();
-        moviesGrid.setAlignment(javafx.geometry.Pos.CENTER);
+        moviesGrid.setAlignment(Pos.CENTER);
         moviesGrid.getChildren().add(loaderContainer);
         
-        // Fetch movies asynchronously to not block UI
+        // Fetch movies from local DB
         new Thread(() -> {
-            models.MovieDAO dao = new models.MovieDAO();
-            List<models.Movie> dbMovies = dao.getActiveMovies();
-            allMovies = new java.util.ArrayList<>();
-            
-            for (models.Movie dbm : dbMovies) {
-                MovieDTO dto;
-                if (dbm.getTmdbId() > 0) {
-                    dto = TMDBUtils.getMovieDetails(dbm.getTmdbId());
-                    if (dto == null) {
-                        dto = new MovieDTO(); // Fallback
-                    }
-                } else {
-                    dto = new MovieDTO();
-                }
-                
-                // Override/Set properties based on local DB if missing
-                if (dto.title == null) dto.title = dbm.getTitle();
-                if (dto.overview == null) dto.overview = dbm.getDescription();
-                if (dto.poster_path == null) dto.poster_path = dbm.getPosterPath();
-                
-                // If it's a local movie, set a generic genre for filtering
-                if (dto.genres == null) {
-                    dto.genres = new java.util.ArrayList<>();
-                    MovieDTO.GenreDTO g = new MovieDTO.GenreDTO();
-                    g.name = dbm.getGenre();
-                    dto.genres.add(g);
-                }
-                
-                allMovies.add(dto);
-            }
-            
+            MovieDAO dao = new MovieDAO();
+            allMovies = dao.getActiveMovies();
             Platform.runLater(this::filterMovies);
         }).start();
     }
@@ -89,55 +60,38 @@ public class NowShowingController {
     private void filterMovies() {
         if (allMovies == null) return;
         
-        String searchQuery = searchField.getText().toLowerCase().trim();
-        String selectedGenre = genreFilterCombo.getValue();
+        String searchQuery = searchField != null ? searchField.getText().toLowerCase().trim() : "";
+        String selectedGenre = genreFilterCombo != null ? genreFilterCombo.getValue() : "All Genres";
         
-        List<MovieDTO> filtered = allMovies.stream()
+        List<Movie> filtered = allMovies.stream()
             .filter(m -> {
-                boolean matchesSearch = m.title.toLowerCase().contains(searchQuery);
-                boolean matchesGenre = "All Genres".equals(selectedGenre) || hasGenre(m, selectedGenre);
+                boolean matchesSearch = m.getTitle().toLowerCase().contains(searchQuery);
+                boolean matchesGenre = "All Genres".equals(selectedGenre) || (m.getGenre() != null && m.getGenre().equalsIgnoreCase(selectedGenre));
                 return matchesSearch && matchesGenre;
             })
             .collect(Collectors.toList());
             
         populateGrid(filtered);
     }
-    
-    private boolean hasGenre(MovieDTO movie, String genreName) {
-        if (movie.genres != null) {
-            for (MovieDTO.GenreDTO g : movie.genres) {
-                if (g.name != null && g.name.equalsIgnoreCase(genreName)) {
-                    return true;
-                }
-            }
-        }
-        if (movie.genre_ids != null) {
-            for (int id : movie.genre_ids) {
-                String name = TMDBUtils.getGenreName(id);
-                if (name != null && name.equalsIgnoreCase(genreName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
-    private void populateGrid(List<MovieDTO> movies) {
+    private void populateGrid(List<Movie> movies) {
         moviesGrid.getChildren().clear();
-        moviesGrid.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+        moviesGrid.setAlignment(Pos.TOP_LEFT);
         
         if (movies == null || movies.isEmpty()) {
-            moviesGrid.getChildren().add(new Label("No movies available right now."));
+            Label emptyLbl = new Label("No active movies available in theater right now.");
+            emptyLbl.setStyle("-fx-font-size: 16px; -fx-text-fill: #6c757d; -fx-padding: 30;");
+            moviesGrid.getChildren().add(emptyLbl);
             return;
         }
 
-        for (MovieDTO movie : movies) {
+        for (Movie movie : movies) {
             VBox card = createMovieCard(movie);
             moviesGrid.getChildren().add(card);
         }
     }
 
-    private VBox createMovieCard(MovieDTO movie) {
+    private VBox createMovieCard(Movie movie) {
         VBox card = new VBox();
         card.getStyleClass().add("movie-grid-card");
         card.setPrefWidth(350);
@@ -148,34 +102,27 @@ public class NowShowingController {
         HBox topRow = new HBox();
         topRow.setAlignment(Pos.CENTER_LEFT);
         
-        String genresStr = "GENRE";
-        if (movie.genres != null && !movie.genres.isEmpty()) {
-            genresStr = movie.genres.stream().map(g -> g.name).limit(2).collect(Collectors.joining(", ")).toUpperCase();
-        } else if (movie.genre_ids != null && !movie.genre_ids.isEmpty()) {
-            genresStr = movie.genre_ids.stream().map(TMDBUtils::getGenreName).limit(2).collect(Collectors.joining(", ")).toUpperCase();
-        }
-            
-        Label genreLabel = new Label(genresStr);
+        Label genreLabel = new Label(movie.getGenre() != null ? movie.getGenre().toUpperCase() : "GENERAL");
         genreLabel.setStyle("-fx-text-fill: #0d6efd; -fx-font-size: 12px; -fx-font-weight: bold;");
         
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        Label ratingLabel = new Label("⭐ " + String.format("%.1f", movie.vote_average));
+        Label ratingLabel = new Label("⭐ " + String.format("%.1f", movie.getRating()));
         ratingLabel.setStyle("-fx-text-fill: #ffc107; -fx-font-size: 14px; -fx-font-weight: bold;");
         
         topRow.getChildren().addAll(genreLabel, spacer, ratingLabel);
 
         // Title
-        Label titleLabel = new Label(movie.title);
+        Label titleLabel = new Label(movie.getTitle());
         titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #212529;");
         titleLabel.setWrapText(true);
 
-        // Subtitle (Duration / Halls) - TMDB now_playing doesn't give runtime without details call, so hardcode or fetch details
-        Label subtitleLabel = new Label("120 mins • Multiple Halls");
+        // Subtitle (Duration)
+        Label subtitleLabel = new Label(movie.getRuntime() + " • Active Showing");
         subtitleLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 14px;");
 
-        // Action Button Spacer (pushes button to bottom)
+        // Action Button Spacer
         Region buttonSpacer = new Region();
         VBox.setVgrow(buttonSpacer, Priority.ALWAYS);
 
@@ -183,19 +130,19 @@ public class NowShowingController {
         Button detailsBtn = new Button("View Details");
         detailsBtn.getStyleClass().add("search-btn");
         detailsBtn.setMaxWidth(Double.MAX_VALUE);
-        detailsBtn.setOnAction(e -> openMovieDetails(movie.id));
+        detailsBtn.setOnAction(e -> openMovieDetails(movie));
 
         card.getChildren().addAll(topRow, titleLabel, subtitleLabel, buttonSpacer, detailsBtn);
         return card;
     }
 
-    private void openMovieDetails(int movieId) {
+    private void openMovieDetails(Movie movie) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ticket/MovieDetails.fxml"));
             Parent root = loader.load();
             
             MovieDetailsController controller = loader.getController();
-            controller.setMovieId(movieId);
+            controller.setLocalMovie(movie);
             
             StackPane contentArea = (StackPane) moviesGrid.getScene().lookup("#contentArea");
             if (contentArea != null) {

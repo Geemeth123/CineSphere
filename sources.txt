@@ -1,7 +1,4 @@
-"src/AddCashierToSales.java"
-"src/DBUpdater.java"
 "src/Main.java"
-"src/TestFXML.java"
 "src/controllers/LoginController.java"
 "src/controllers/MainLayoutController.java"
 "src/controllers/admin/AddMovieManuallyController.java"

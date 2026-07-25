@@ -28,8 +28,8 @@ public class SeatSelectionController {
 
     private int adultCount = 0;
     private int childCount = 0;
-    private final double ADULT_PRICE = 350.0;
-    private final double CHILD_PRICE = 200.0;
+    private double adultPrice = 350.0;
+    private double childPrice = 200.0;
     
     private List<String> selectedSeats = new ArrayList<>();
     
@@ -45,6 +45,21 @@ public class SeatSelectionController {
         
         movieTitleLabel.setText(title);
         showtimeLabel.setText(details);
+        
+        try (java.sql.Connection conn = utils.DBUtils.getConnection();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT m.adult_price, m.kids_price FROM shows s JOIN movies m ON s.movie_id = m.id WHERE s.id = ?")) {
+            int sId = Integer.parseInt(showId.replace("SH-", ""));
+            stmt.setInt(1, sId);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    double ap = rs.getDouble("adult_price");
+                    double kp = rs.getDouble("kids_price");
+                    if (ap > 0) this.adultPrice = ap;
+                    if (kp > 0) this.childPrice = kp;
+                }
+            }
+        } catch (Exception e) {}
         
         generateSeatGrid();
         updateSummary();
@@ -198,7 +213,7 @@ public class SeatSelectionController {
         adultCountLabel.setText(String.valueOf(adultCount));
         childCountLabel.setText(String.valueOf(childCount));
 
-        double total = (adultCount * ADULT_PRICE) + (childCount * CHILD_PRICE);
+        double total = (adultCount * adultPrice) + (childCount * childPrice);
         totalAmountLabel.setText(String.format("$%.2f", total));
 
         // Enable proceed if at least 1 seat selected AND ticket count matches seat count
@@ -234,7 +249,7 @@ public class SeatSelectionController {
 
     @FXML
     public void handleProceed() {
-        double total = (adultCount * ADULT_PRICE) + (childCount * CHILD_PRICE);
+        double total = (adultCount * adultPrice) + (childCount * childPrice);
         String formattedTotal = String.format("$%.2f", total);
         
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);

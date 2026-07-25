@@ -1,3 +1,3 @@
 @echo off
 echo Running CineSphere...
-java -Djava.library.path=lib --module-path lib --add-modules javafx.controls,javafx.fxml -cp "bin;lib/*" Main
+java --enable-native-access=ALL-UNNAMED -Djava.library.path=lib --module-path lib --add-modules javafx.controls,javafx.fxml -cp "bin;lib/*" Main
