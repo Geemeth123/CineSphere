@@ -13,7 +13,7 @@ public class ShowDAO {
     public List<ShowTableItem> getTodayShows() {
         List<ShowTableItem> shows = new ArrayList<>();
         String sql = "SELECT s.id as show_id, m.title as movie_title, h.name as hall_name, " +
-                     "DATE_FORMAT(s.show_time, '%H:%i') as show_time, h.total_seats, " +
+                     "DATE_FORMAT(s.show_time, '%H:%i') as show_time, (SELECT COUNT(*) FROM seats WHERE hall_id = h.id AND status = 'AVAILABLE') as total_seats, " +
                      "(SELECT COUNT(*) FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.show_id = s.id AND b.status != 'CANCELLED') as booked_seats, " +
                      "s.status " +
                      "FROM shows s " +
@@ -64,7 +64,7 @@ public class ShowDAO {
     public List<ShowTableItem> getUpcomingShows() {
         List<ShowTableItem> shows = new ArrayList<>();
         String sql = "SELECT s.id as show_id, m.title as movie_title, h.name as hall_name, " +
-                     "DATE_FORMAT(s.show_time, '%H:%i') as show_time, h.total_seats, " +
+                     "DATE_FORMAT(s.show_time, '%H:%i') as show_time, (SELECT COUNT(*) FROM seats WHERE hall_id = h.id AND status = 'AVAILABLE') as total_seats, " +
                      "(SELECT COUNT(*) FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.show_id = s.id AND b.status != 'CANCELLED') as booked_seats, " +
                      "s.status " +
                      "FROM shows s " +
@@ -115,7 +115,7 @@ public class ShowDAO {
         Map<Integer, Movie> movieMap = new LinkedHashMap<>();
         
         String sql = "SELECT m.id as movie_id, m.title, m.genre, m.duration_minutes, m.description, " +
-                     "s.id as show_id, DATE_FORMAT(s.show_time, '%H:%i') as show_time, h.name as hall_name, h.total_seats, " +
+                     "s.id as show_id, DATE_FORMAT(s.show_time, '%H:%i') as show_time, h.name as hall_name, (SELECT COUNT(*) FROM seats WHERE hall_id = h.id AND status = 'AVAILABLE') as total_seats, " +
                      "(SELECT COUNT(*) FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.show_id = s.id AND b.status != 'CANCELLED') as booked_seats " +
                      "FROM movies m " +
                      "JOIN shows s ON m.id = s.movie_id " +
@@ -162,7 +162,7 @@ public class ShowDAO {
         
         String sql = "SELECT m.id as movie_id, m.title, m.genre, m.duration_minutes, m.description, m.poster_path, m.rating, " +
                      "s.id as show_id, DATE_FORMAT(s.show_date, '%d/%m/%Y') as show_date, DATE_FORMAT(s.show_time, '%H:%i') as show_time, s.status as show_status, " +
-                     "h.name as hall_name, h.total_seats, " +
+                     "h.name as hall_name, (SELECT COUNT(*) FROM seats WHERE hall_id = h.id AND status = 'AVAILABLE') as total_seats, " +
                      "(SELECT COUNT(*) FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.show_id = s.id AND b.status != 'CANCELLED') as booked_seats " +
                      "FROM movies m " +
                      "LEFT JOIN shows s ON m.id = s.movie_id " +
