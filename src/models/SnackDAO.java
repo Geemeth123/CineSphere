@@ -5,8 +5,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data Access Object for managing snack inventory items in the database.
+ */
 public class SnackDAO {
 
+    /**
+     * Retrieves all snacks registered in the system.
+     * @return List of all Snack objects
+     */
     public List<Snack> getAllSnacks() {
         List<Snack> snacks = new ArrayList<>();
         String query = "SELECT * FROM snacks";
@@ -22,6 +29,7 @@ public class SnackDAO {
         }
         return snacks;
     }
+
 
     public List<Snack> getActiveSnacks() {
         List<Snack> snacks = new ArrayList<>();
