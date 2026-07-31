@@ -65,6 +65,7 @@
             </VBox>
 
         </VBox>
+        </VBox>
         
         <!-- Loading Overlay -->
         <VBox fx:id="loadingOverlay" alignment="CENTER" spacing="15" style="-fx-background-color: white;">
