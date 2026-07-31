@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.control.Button;
 import models.Movie;
 import models.MovieDTO;
@@ -31,7 +32,7 @@ public class MovieDetailsController {
     @FXML
     private Label taglineLabel;
     @FXML
-    private HBox genresBox;
+    private FlowPane genresBox;
     @FXML
     private Label ratingLabel;
     @FXML
