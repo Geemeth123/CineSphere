@@ -79,7 +79,59 @@ public class MovieDAO {
         return false;
     }
 
+    private String downloadImage(String imageUrl, String subfolder, String fileName) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return "";
+        }
+        if (imageUrl.startsWith("file:") || imageUrl.startsWith("file:/") || new java.io.File(imageUrl).exists()) {
+            return imageUrl;
+        }
+        
+        try {
+            java.io.File dir = new java.io.File("movies/" + subfolder);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            
+            java.io.File dest = new java.io.File(dir, fileName);
+            
+            java.net.URL url = new java.net.URL(imageUrl);
+            try (java.io.InputStream in = url.openStream();
+                 java.io.OutputStream out = new java.io.FileOutputStream(dest)) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+            }
+            return dest.toURI().toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Failed to download image " + imageUrl + ": " + e.getMessage());
+            return imageUrl;
+        }
+    }
+
     public Movie createMovie(MovieDTO dto) {
+        String posterUrl = (dto.poster_path != null && !dto.poster_path.isEmpty()) ? utils.TMDBUtils.getImageUrl(dto.poster_path, "w500") : "";
+        String bannerUrl = (dto.backdrop_path != null && !dto.backdrop_path.isEmpty()) ? utils.TMDBUtils.getImageUrl(dto.backdrop_path, "original") : "";
+
+        String localPosterPath = "";
+        String localBannerPath = "";
+
+        if (!posterUrl.isEmpty()) {
+            String fileName = dto.id + "_" + new java.io.File(dto.poster_path).getName();
+            localPosterPath = downloadImage(posterUrl, "posters", fileName);
+        } else {
+            localPosterPath = dto.poster_path;
+        }
+        if (!bannerUrl.isEmpty()) {
+            String fileName = dto.id + "_" + new java.io.File(dto.backdrop_path).getName();
+            localBannerPath = downloadImage(bannerUrl, "banners", fileName);
+        } else {
+            localBannerPath = dto.backdrop_path;
+        }
+
         String sql = "INSERT INTO movies (title, description, duration_minutes, genre, tmdb_id, poster_path, banner_path, status, adult_price, kids_price) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', 0, 0)";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
@@ -97,18 +149,18 @@ public class MovieDAO {
             stmt.setString(4, genre);
             
             stmt.setInt(5, dto.id);
-            stmt.setString(6, dto.poster_path);
-            stmt.setString(7, dto.backdrop_path);
+            stmt.setString(6, localPosterPath);
+            stmt.setString(7, localBannerPath);
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         int id = rs.getInt(1);
-                        Movie m = new Movie("M" + id, dto.title, genre, stmt.getParameterMetaData() != null ? "120 mins" : "120 mins", dto.overview, new ArrayList<>());
+                        Movie m = new Movie("M" + id, dto.title, genre, "120 mins", dto.overview, new ArrayList<>());
                         m.setTmdbId(dto.id);
-                        m.setPosterPath(dto.poster_path);
-                        m.setBannerPath(dto.backdrop_path);
+                        m.setPosterPath(localPosterPath);
+                        m.setBannerPath(localBannerPath);
                         return m;
                     }
                 }

@@ -157,18 +157,20 @@ public class AddMovieManuallyController {
             
             // Copy files locally
             try {
-                java.io.File dir = new java.io.File(System.getProperty("user.dir") + "/data/movie");
-                if (!dir.exists()) dir.mkdirs();
+                java.io.File posterDir = new java.io.File("movies/posters");
+                java.io.File bannerDir = new java.io.File("movies/banners");
+                if (!posterDir.exists()) posterDir.mkdirs();
+                if (!bannerDir.exists()) bannerDir.mkdirs();
                 
                 if (posterPath.startsWith("file:/")) {
                     java.io.File src = new java.io.File(java.net.URI.create(posterPath));
-                    java.io.File dest = new java.io.File(dir, "manual_poster_" + System.currentTimeMillis() + "_" + src.getName());
+                    java.io.File dest = new java.io.File(posterDir, "manual_poster_" + System.currentTimeMillis() + "_" + src.getName());
                     java.nio.file.Files.copy(src.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                     posterPath = dest.toURI().toString();
                 }
                 if (bannerPath.startsWith("file:/")) {
                     java.io.File src = new java.io.File(java.net.URI.create(bannerPath));
-                    java.io.File dest = new java.io.File(dir, "manual_banner_" + System.currentTimeMillis() + "_" + src.getName());
+                    java.io.File dest = new java.io.File(bannerDir, "manual_banner_" + System.currentTimeMillis() + "_" + src.getName());
                     java.nio.file.Files.copy(src.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                     bannerPath = dest.toURI().toString();
                 }
