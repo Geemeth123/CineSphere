@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS seats (
     row_label CHAR(1) NOT NULL,
     seat_number INT NOT NULL,
     seat_type ENUM('REGULAR', 'PREMIUM', 'VIP') NOT NULL DEFAULT 'REGULAR',
+    status ENUM('AVAILABLE', 'MAINTENANCE') NOT NULL DEFAULT 'AVAILABLE',
     FOREIGN KEY (hall_id) REFERENCES halls(id) ON DELETE CASCADE,
     UNIQUE KEY unique_seat (hall_id, row_label, seat_number)
 );
