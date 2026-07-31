@@ -31,7 +31,6 @@ public class SnackSaleDAO {
                     stmt.setNull(2, Types.INTEGER);
                 }
                 stmt.setBigDecimal(3, sale.getTotalAmount());
-                
                 stmt.executeUpdate();
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
@@ -47,9 +46,10 @@ public class SnackSaleDAO {
             }
 
             // 2. Insert Items and Update Stock
+            String guardedStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
             try (PreparedStatement itemStmt = conn.prepareStatement(insertItemQuery);
-                 PreparedStatement stockStmt = conn.prepareStatement(updateStockQuery)) {
-                 
+                 PreparedStatement stockStmt = conn.prepareStatement(guardedStockQuery)) {
+
                 for (SnackSaleItem item : items) {
                     // Insert Item
                     itemStmt.setInt(1, saleId);
@@ -59,19 +59,23 @@ public class SnackSaleDAO {
                     itemStmt.setBigDecimal(5, item.getDiscountApplied());
                     itemStmt.addBatch();
 
-                    // Update Stock
+                    // Update Stock with guard
                     stockStmt.setInt(1, item.getQuantity());
                     stockStmt.setInt(2, item.getSnackId());
                     stockStmt.setInt(3, item.getQuantity());
-                    
-                    int updated = stockStmt.executeUpdate();
-                    if (updated == 0) {
-                        conn.rollback(); // Insufficient stock or snack deleted
+                    stockStmt.addBatch();
+                }
+
+                itemStmt.executeBatch();
+                int[] stockResults = stockStmt.executeBatch();
+
+                // Check if any stock update failed (insufficient quantity)
+                for (int result : stockResults) {
+                    if (result == 0) {
+                        conn.rollback();
                         return false;
                     }
                 }
-                
-                itemStmt.executeBatch();
             }
 
             conn.commit();
@@ -151,10 +155,10 @@ public class SnackSaleDAO {
 
     public List<SnackSaleItem> getItemsForSale(int saleId) {
         List<SnackSaleItem> items = new ArrayList<>();
-        String query = "SELECT si.*, s.name as snack_name FROM snack_sale_items si LEFT JOIN snacks s ON si.snack_id = s.id WHERE si.snack_sale_id = ?";
+        String query = "SELECT si.*, COALESCE(s.name, 'Deleted Item') as snack_name FROM snack_sale_items si LEFT JOIN snacks s ON si.snack_id = s.id WHERE si.snack_sale_id = ?";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
-             
+
              stmt.setInt(1, saleId);
              try (ResultSet rs = stmt.executeQuery()) {
                  while (rs.next()) {

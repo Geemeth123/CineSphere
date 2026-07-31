@@ -101,13 +101,11 @@ public class SnackDAO {
     }
 
     public boolean updateSnackQuantity(int snackId, int quantityChange) {
-        String query = "UPDATE snacks SET quantity = quantity + ? WHERE id = ? AND quantity + ? >= 0";
+        String query = "UPDATE snacks SET quantity = GREATEST(0, quantity + ?) WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
-             
             stmt.setInt(1, quantityChange);
             stmt.setInt(2, snackId);
-            stmt.setInt(3, quantityChange);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

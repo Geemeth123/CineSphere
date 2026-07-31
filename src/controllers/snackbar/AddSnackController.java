@@ -147,7 +147,7 @@ public class AddSnackController {
             showAlert("Validation Error", "Name is required.");
             return false;
         }
-        
+
         if (categoryCombo.getValue() == null) {
             showAlert("Validation Error", "Category is required.");
             return false;
@@ -171,6 +171,17 @@ public class AddSnackController {
         }
 
         try {
+            BigDecimal cp = new BigDecimal(costPriceStr);
+            if (cp.compareTo(BigDecimal.ZERO) < 0) {
+                showAlert("Validation Error", "Cost Price cannot be negative.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            showAlert("Validation Error", "Cost Price must be a valid number.");
+            return false;
+        }
+
+        try {
             int q = Integer.parseInt(qtyStr);
             if (q < 0) {
                 showAlert("Validation Error", "Quantity cannot be negative.");
@@ -184,6 +195,17 @@ public class AddSnackController {
             }
         } catch (NumberFormatException e) {
             showAlert("Validation Error", "Quantity must be an integer.");
+            return false;
+        }
+
+        try {
+            int ms = Integer.parseInt(minStockStr);
+            if (ms < 0) {
+                showAlert("Validation Error", "Min Stock cannot be negative.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            showAlert("Validation Error", "Min Stock must be an integer.");
             return false;
         }
 

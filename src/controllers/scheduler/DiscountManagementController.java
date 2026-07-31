@@ -105,7 +105,15 @@ public class DiscountManagementController implements Initializable {
             } else if ("SHOW".equals(d.getTargetType())) {
                 d.setTargetName("Show ID: " + d.getTargetId());
             } else if ("SNACK".equals(d.getTargetType())) {
-                d.setTargetName("Snack ID: " + d.getTargetId());
+                Snack snack = snackDAO.getAllSnacks().stream()
+                    .filter(s -> s.getId() == d.getTargetId())
+                    .findFirst()
+                    .orElse(null);
+                if (snack != null) {
+                    d.setTargetName(snack.getName());
+                } else {
+                    d.setTargetName("Snack ID: " + d.getTargetId());
+                }
             }
         }
         
@@ -185,7 +193,7 @@ public class DiscountManagementController implements Initializable {
                     } else if (item instanceof Snack) {
                         targetId = ((Snack)item).getId();
                     }
-                    
+
                     Discount d = new Discount(0, type, targetId, pct, status, null, null);
                     return d;
                 } catch (Exception e) {

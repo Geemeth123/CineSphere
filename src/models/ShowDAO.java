@@ -191,6 +191,12 @@ public class ShowDAO {
                 
                 int showIdInt = rs.getInt("show_id");
                 if (!rs.wasNull()) {
+                    String showStatus = rs.getString("show_status");
+                    // Skip cancelled shows
+                    if ("CANCELLED".equals(showStatus)) {
+                        continue;
+                    }
+
                     String showId = "SH-" + showIdInt;
                     String date = rs.getString("show_date");
                     String time = rs.getString("show_time");
@@ -198,12 +204,12 @@ public class ShowDAO {
                     int totalSeats = rs.getInt("total_seats");
                     int bookedSeats = rs.getInt("booked_seats");
                     int availableSeats = totalSeats - bookedSeats;
-                    
+                    // Format display time as "dd/MM HH:mm" for better UI
                     String displayTime = date.substring(0, 5) + " " + time;
                     Showtime st = new Showtime(showId, displayTime, hall, availableSeats, totalSeats);
                     st.setRawDate(date);
                     st.setRawTime(time);
-                    
+
                     movie.getShowtimes().add(st);
                 }
             }
@@ -286,12 +292,21 @@ public class ShowDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
             return false;
         } finally {
             if (conn != null) {
-                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }

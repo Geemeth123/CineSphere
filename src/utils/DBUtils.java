@@ -43,7 +43,6 @@ public class DBUtils {
         String url = env.getOrDefault("DB_URL", "jdbc:mysql://localhost:3306/cinesphere");
         String user = env.getOrDefault("DB_USER", "root");
         String password = env.getOrDefault("DB_PASSWORD", "");
-        
         return DriverManager.getConnection(url, user, password);
     }
 }

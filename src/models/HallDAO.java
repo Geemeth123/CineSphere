@@ -85,8 +85,8 @@ public class HallDAO {
         try {
             conn = DBUtils.getConnection();
             conn.setAutoCommit(false);
+
             try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-                
                 stmt.setString(1, hall.getName());
                 stmt.setString(2, hall.getType() != null ? hall.getType() : "Digital 2D");
                 stmt.setInt(3, hall.getTotalSeats());
@@ -94,32 +94,45 @@ public class HallDAO {
                 stmt.setInt(5, hall.getSeatColumns());
                 stmt.setString(6, hall.getStatus() != null ? hall.getStatus() : "ACTIVE");
                 stmt.setBoolean(7, hall.isKidsHall());
-                
+
                 int affectedRows = stmt.executeUpdate();
                 if (affectedRows > 0) {
                     try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                         if (generatedKeys.next()) {
                             hall.setId(generatedKeys.getInt(1));
-                            
+
                             // Auto-generate seats for this new hall using the stored procedure
                             generateSeatsForHall(conn, hall.getId(), hall.getSeatRows(), hall.getSeatColumns());
+
                             conn.commit();
                             return true;
                         }
                     }
                 }
             }
+
+            conn.rollback();
+            return false;
         } catch (SQLException e) {
-            e.printStackTrace();
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
+            e.printStackTrace();
+            return false;
         } finally {
             if (conn != null) {
-                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
-        return false;
     }
 
     public boolean updateHall(Hall hall) {
