@@ -3,7 +3,7 @@ echo Building CineSphere...
 if not exist bin mkdir bin
 del sources.txt 2>nul
 powershell -Command "Get-ChildItem -Path src -Filter *.java -Recurse -File | ForEach-Object { '\"' + $_.FullName.Substring((Get-Location).Path.Length + 1).Replace('\', '/') + '\"' } | Out-File -FilePath sources.txt -Encoding ascii"
-javac -d bin --module-path lib --add-modules javafx.controls,javafx.fxml -cp "lib/*" @sources.txt
+javac -encoding UTF-8 -d bin --module-path lib/javafx --add-modules javafx.controls,javafx.fxml -cp "lib/javafx/*;lib/mysqlconnector/*;lib/atlantafx/*;lib/gson/*;lib/zxing/*" @sources.txt
 if %errorlevel% neq 0 (
     echo Compilation failed!
     exit /b %errorlevel%
