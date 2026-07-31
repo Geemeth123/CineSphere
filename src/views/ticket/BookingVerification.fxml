@@ -1,3 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
 <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" stylesheets="@ticket.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ticket.BookingVerificationController">
 <VBox spacing="15" style="-fx-background-color: #ffffff; -fx-padding: 20;">
     

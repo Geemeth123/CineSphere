@@ -71,7 +71,8 @@ public class ScheduleMovieController implements Initializable {
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
-                Image image = new Image(movie.getPosterPath(), true);
+                String posterUrl = (movie.getPosterPath().startsWith("http") || movie.getPosterPath().startsWith("file:")) ? movie.getPosterPath() : utils.TMDBUtils.getImageUrl(movie.getPosterPath(), "w500");
+                Image image = new Image(posterUrl, true);
                 moviePoster.setImage(image);
             } catch (Exception e) {
                 System.out.println("Could not load image: " + movie.getPosterPath());

@@ -232,6 +232,8 @@ public class MovieDAO {
         m.setKidsPrice(rs.getDouble("kids_price"));
         m.setShowingFrom(rs.getString("showing_from"));
         m.setShowingUntil(rs.getString("showing_until"));
+        m.setRating(rs.getDouble("rating"));
+        m.setTmdbId(rs.getInt("tmdb_id"));
         return m;
     }
 }
