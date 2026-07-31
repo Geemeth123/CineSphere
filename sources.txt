@@ -24,6 +24,7 @@
 "src/controllers/snackbar/SnackManagementController.java"
 "src/controllers/snackbar/SnackOverviewController.java"
 "src/controllers/snackbar/SnackPOSController.java"
+"src/controllers/snackbar/SnackReceiptController.java"
 "src/controllers/ticket/BookingConfirmedController.java"
 "src/controllers/ticket/BookingHistoryController.java"
 "src/controllers/ticket/BookingTicketController.java"

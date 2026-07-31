@@ -95,16 +95,16 @@ public class SnackManagementController {
 
         Label nameLabel = new Label(snack.getName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
-        nameLabel.setTextFill(Color.web("#111111"));
+        nameLabel.setTextFill(Color.web("#212529"));
         nameLabel.setWrapText(true);
 
         Label categoryLabel = new Label(snack.getCategory());
         categoryLabel.setFont(Font.font("System", 12));
-        categoryLabel.setTextFill(Color.web("#888888"));
+        categoryLabel.setTextFill(Color.web("#6c757d"));
 
         Label priceLabel = new Label(String.format("$%.2f", snack.getPrice()));
         priceLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-        priceLabel.setTextFill(Color.web("#0066ff"));
+        priceLabel.setTextFill(Color.web("#0d6efd"));
 
         HBox statusBox = new HBox(5);
         Label qtyLabel = new Label("Qty: " + snack.getQuantity());
@@ -132,13 +132,13 @@ public class SnackManagementController {
         Button editBtn = new Button("Edit");
         editBtn.setMaxWidth(Double.MAX_VALUE);
         javafx.scene.layout.HBox.setHgrow(editBtn, javafx.scene.layout.Priority.ALWAYS);
-        editBtn.setStyle("-fx-background-color: white; -fx-border-color: #0066ff; -fx-text-fill: #0066ff; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-cursor: hand;");
+        editBtn.getStyleClass().add("secondary-action-btn");
         editBtn.setOnAction(e -> openEditPage(snack));
 
         Button deleteBtn = new Button("Delete");
         deleteBtn.setMaxWidth(Double.MAX_VALUE);
         javafx.scene.layout.HBox.setHgrow(deleteBtn, javafx.scene.layout.Priority.ALWAYS);
-        deleteBtn.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-border-color: #fca5a5; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-cursor: hand;");
+        deleteBtn.getStyleClass().add("danger-action-btn");
         deleteBtn.setOnAction(e -> handleDeleteSnack(snack));
 
         HBox actionBox = new HBox(10, editBtn, deleteBtn);
