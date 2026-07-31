@@ -59,8 +59,7 @@ logs/
 download_jars.ps1
 built.bat
 
-lib/*.dll
-lib/*.jar
+lib/
 
 # Keep data directory structure but ignore contents
 data/*

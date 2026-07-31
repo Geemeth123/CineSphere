@@ -10,7 +10,7 @@ public class SnackSaleDAO {
     public boolean createSale(SnackSale sale, List<SnackSaleItem> items) {
         String insertSaleQuery = "INSERT INTO snack_sales (booking_id, user_id, total_amount) VALUES (?, ?, ?)";
         String insertItemQuery = "INSERT INTO snack_sale_items (snack_sale_id, snack_id, quantity, price_at_sale, discount_applied) VALUES (?, ?, ?, ?, ?)";
-        String updateStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ?";
+        String updateStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
 
         Connection conn = null;
         try {
@@ -31,7 +31,6 @@ public class SnackSaleDAO {
                     stmt.setNull(2, Types.INTEGER);
                 }
                 stmt.setBigDecimal(3, sale.getTotalAmount());
-
                 stmt.executeUpdate();
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {

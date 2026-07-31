@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.control.Button;
 import models.Movie;
 import models.MovieDTO;
@@ -16,6 +17,10 @@ import utils.TMDBUtils;
 import controllers.admin.EditMoviePricingDialogController;
 import models.MovieDAO;
 
+/**
+ * Controller for displaying detailed information about a movie, including overview,
+ * cast ratings, banner, genres, and booking or editing actions.
+ */
 public class MovieDetailsController {
 
     @FXML
@@ -27,7 +32,7 @@ public class MovieDetailsController {
     @FXML
     private Label taglineLabel;
     @FXML
-    private HBox genresBox;
+    private FlowPane genresBox;
     @FXML
     private Label ratingLabel;
     @FXML
@@ -40,6 +45,10 @@ public class MovieDetailsController {
     private Label popularityLabel;
     @FXML
     private Label overviewLabel;
+    @FXML
+    private javafx.scene.layout.VBox contentContainer;
+    @FXML
+    private javafx.scene.layout.VBox loadingOverlay;
 
     private boolean isAdminMode = false;
     private boolean isAddNewMode = false;
@@ -49,71 +58,155 @@ public class MovieDetailsController {
     private MovieDAO movieDAO = new MovieDAO();
 
     @FXML
-    private Button actionButton; // We will replace the "Book Tickets" button with a dynamic one in FXML or just toggle visibility if we add both.
+    private Button actionButton;
 
+    /**
+     * Initializes the controller view.
+     */
     @FXML
     public void initialize() {
-        // Initialization if needed
+        // Initial setup if required
     }
 
+    private void showLoader() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisible(true);
+            loadingOverlay.setManaged(true);
+            contentContainer.setVisible(false);
+        }
+    }
+
+    private void hideLoader() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisible(false);
+            loadingOverlay.setManaged(false);
+            contentContainer.setVisible(true);
+        }
+    }
+
+    /**
+     * Sets whether the view is operating in admin edit mode.
+     * @param admin true to enable admin mode
+     */
     public void setAdminMode(boolean admin) {
         this.isAdminMode = admin;
         this.isAddNewMode = false;
     }
 
+    /**
+     * Sets whether the view is in "Add New Movie" mode.
+     * @param addNew true to enable add-new mode
+     */
     public void setAddNewMode(boolean addNew) {
         this.isAddNewMode = addNew;
         this.isAdminMode = false;
     }
 
+    /**
+     * Loads details for a locally stored movie entity.
+     * @param movie the Movie model to populate
+     */
     public void setLocalMovie(Movie movie) {
         this.localMovie = movie;
-        if (movie.getTmdbId() > 0) {
-            this.currentMovieId = movie.getTmdbId();
-            new Thread(() -> {
-                MovieDTO dto = TMDBUtils.getMovieDetails(currentMovieId);
-                this.currentFetchedDto = dto;
-                Platform.runLater(() -> {
-                    populateDetails(dto);
-                    updateActionButtons();
-                });
-            }).start();
-        } else {
-            // Populate from local DB
-            titleLabel.setText(movie.getTitle());
-            overviewLabel.setText(movie.getDescription());
-            durationLabel.setText("⏱ " + movie.getRuntime());
-
-            if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
-                String posterUrl = movie.getPosterPath().startsWith("http") ? movie.getPosterPath() : TMDBUtils.getImageUrl(movie.getPosterPath(), "w500");
-                posterImage.setImage(new Image(posterUrl, true));
-            }
-            if (movie.getBannerPath() != null && !movie.getBannerPath().isEmpty()) {
-                String bannerUrl = movie.getBannerPath().startsWith("http") ? movie.getBannerPath() : TMDBUtils.getImageUrl(movie.getBannerPath(), "original");
-                heroBanner.setStyle("-fx-background-image: url('" + bannerUrl + "'); -fx-background-size: cover; -fx-background-position: center;");
-            }
+        if (movie != null && movie.getTmdbId() > 0) {
+            fetchDetailsAsync(movie.getTmdbId(), movie);
+        } else if (movie != null) {
+            populateLocalDetails(movie);
             updateActionButtons();
+            hideLoader();
         }
     }
 
+    /**
+     * Loads details for a given TMDB movie ID asynchronously.
+     * @param tmdbId the TMDB movie identifier
+     */
     public void setMovieId(int tmdbId) {
         this.currentMovieId = tmdbId;
+        if (tmdbId <= 0) return;
+        fetchDetailsAsync(tmdbId, localMovie);
+    }
+
+    /**
+     * Helper to fetch movie details asynchronously from TMDB and update UI.
+     * @param tmdbId TMDB movie ID to fetch
+     * @param fallback Movie object to use if remote fetch returns null
+     */
+    private void fetchDetailsAsync(int tmdbId, Movie fallback) {
+        this.currentMovieId = tmdbId;
+        showLoader();
         new Thread(() -> {
             MovieDTO dto = TMDBUtils.getMovieDetails(tmdbId);
             this.currentFetchedDto = dto;
             Platform.runLater(() -> {
-                populateDetails(dto);
+                if (dto != null) {
+                    populateDetails(dto);
+                } else if (fallback != null) {
+                    populateLocalDetails(fallback);
+                } else {
+                    titleLabel.setText("Movie Details");
+                }
                 updateActionButtons();
+                hideLoader();
             });
         }).start();
     }
 
+    /**
+     * Populates UI fields using local Movie object data.
+     * @param movie Local Movie entity
+     */
+    private void populateLocalDetails(Movie movie) {
+        if (movie == null) return;
+        titleLabel.setText(movie.getTitle());
+        taglineLabel.setText(movie.getTagline() != null && !movie.getTagline().isEmpty() ? "\"" + movie.getTagline() + "\"" : "");
+        ratingLabel.setText(String.format("⭐ %.1f", movie.getRating()));
+
+        if (movie.getReleaseDate() != null && movie.getReleaseDate().length() >= 4) {
+            yearLabel.setText(movie.getReleaseDate().substring(0, 4));
+        } else {
+            yearLabel.setText("2024");
+        }
+
+        languageLabel.setText("EN");
+        durationLabel.setText("⏱ " + movie.getRuntime());
+        popularityLabel.setText("Popularity: " + movie.getPopularity() + " • Active Theater Showing");
+        overviewLabel.setText(movie.getDescription());
+
+        genresBox.getChildren().clear();
+        if (movie.getGenre() != null) {
+            Label gLabel = new Label(movie.getGenre());
+            gLabel.getStyleClass().add("genre-badge");
+            genresBox.getChildren().add(gLabel);
+        }
+
+        if (movie.getBannerPath() != null && !movie.getBannerPath().isEmpty()) {
+            String bannerUrl = movie.getBannerPath().startsWith("http") ? movie.getBannerPath() : (movie.getBannerPath().startsWith("file:") ? movie.getBannerPath() : "file:" + movie.getBannerPath());
+            try {
+                heroBanner.setStyle("-fx-background-image: url('" + bannerUrl + "'); -fx-background-size: cover; -fx-background-position: center;");
+            } catch (Exception e) {
+                System.err.println("Failed to set hero banner background: " + e.getMessage());
+            }
+        }
+
+        if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
+            String posterUrl = movie.getPosterPath().startsWith("http") ? movie.getPosterPath() : (movie.getPosterPath().startsWith("file:") ? movie.getPosterPath() : "file:" + movie.getPosterPath());
+            try {
+                posterImage.setImage(new Image(posterUrl, true));
+            } catch (Exception e) {
+                System.err.println("Failed to load poster image: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Updates action button label and click handlers depending on active mode.
+     */
     private void updateActionButtons() {
         if (actionButton != null) {
             actionButton.getStyleClass().clear();
             actionButton.getStyleClass().add("primary-action-btn");
             
-            // Clear any inline styles from previous states
             actionButton.setStyle("");
             actionButton.setDisable(false);
 
@@ -136,6 +229,9 @@ public class MovieDetailsController {
         }
     }
 
+    /**
+     * Opens pricing edit dialog for adding new movie to theater.
+     */
     private void handleAddToTheater() {
         if (currentFetchedDto == null) {
             javafx.scene.control.Alert a = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, "Movie details not fully loaded yet.");
@@ -148,7 +244,6 @@ public class MovieDetailsController {
             Parent root = loader.load();
             EditMoviePricingDialogController controller = loader.getController();
             
-            // Pass the DTO instead of saving it first
             controller.initDataForNewTMDB(currentFetchedDto);
 
             javafx.stage.Stage stage = new javafx.stage.Stage();
@@ -157,7 +252,6 @@ public class MovieDetailsController {
             stage.setScene(new javafx.scene.Scene(root));
             stage.showAndWait();
 
-            // Only navigate back if the user successfully saved
             if (controller.saveSuccessful) {
                 if (controllers.MainLayoutController.getInstance() != null) {
                     controllers.MainLayoutController.getInstance().loadPageDirectly("/views/admin/MovieManagement.fxml");
@@ -168,6 +262,10 @@ public class MovieDetailsController {
         }
     }
 
+    /**
+     * Populates UI controls with remote TMDB movie data DTO.
+     * @param movie Remote MovieDTO
+     */
     private void populateDetails(MovieDTO movie) {
         if (movie == null) {
             titleLabel.setText("Error loading details");
@@ -187,7 +285,6 @@ public class MovieDetailsController {
         popularityLabel.setText("Popularity: " + movie.popularity + " • Released");
         overviewLabel.setText(movie.overview);
 
-        // Genres
         genresBox.getChildren().clear();
         if (movie.genres != null) {
             for (MovieDTO.GenreDTO genre : movie.genres) {
@@ -197,7 +294,6 @@ public class MovieDetailsController {
             }
         }
 
-        // Images
         if (movie.backdrop_path != null) {
             String imageUrl = movie.backdrop_path.startsWith("http") ? movie.backdrop_path : TMDBUtils.getImageUrl(movie.backdrop_path, "w1280");
             heroBanner.setStyle("-fx-background-image: url('" + imageUrl + "'); "
@@ -212,6 +308,9 @@ public class MovieDetailsController {
         }
     }
 
+    /**
+     * Displays edit pricing dialog for existing theater movie.
+     */
     public void handleEditPricing() {
         if (localMovie != null) {
             try {
@@ -233,6 +332,9 @@ public class MovieDetailsController {
         }
     }
 
+    /**
+     * Navigates to ticket booking view.
+     */
     @FXML
     public void handleBookTickets() {
         try {
@@ -248,6 +350,9 @@ public class MovieDetailsController {
         }
     }
 
+    /**
+     * Navigates back to parent list view based on current mode.
+     */
     @FXML
     public void handleBack() {
         try {
@@ -270,3 +375,4 @@ public class MovieDetailsController {
         }
     }
 }
+

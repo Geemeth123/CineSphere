@@ -5,11 +5,23 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data Access Object for handling cinema hall configurations and seating capacity.
+ */
 public class HallDAO {
 
+    private static boolean schemaInitialized = false;
+
+    /**
+     * Constructs HallDAO and ensures required schema columns exist.
+     */
     public HallDAO() {
-        initializeSchema();
+        if (!schemaInitialized) {
+            initializeSchema();
+            schemaInitialized = true;
+        }
     }
+
 
     private void initializeSchema() {
         try (Connection conn = DBUtils.getConnection();

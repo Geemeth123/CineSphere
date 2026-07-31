@@ -1,18 +1,24 @@
 package controllers.ticket;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import models.Movie;
 import models.Showtime;
+import models.ShowDAO;
 
-import java.util.Arrays;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 
+/**
+ * Controller for ticket booking flow, handling active movie listing,
+ * search filtering, showtime selection, and seat map navigation.
+ */
 public class BookingTicketController {
 
     @FXML private TextField searchField;
@@ -28,24 +34,33 @@ public class BookingTicketController {
 
     private Showtime selectedShowtime = null;
 
+    /**
+     * Initializes the booking ticket view and loads active movies asynchronously.
+     */
     @FXML
     public void initialize() {
-        // Load live movies from DB
-        models.ShowDAO dao = new models.ShowDAO();
-        ObservableList<Movie> movies = FXCollections.observableArrayList(dao.getActiveMoviesWithShowtimes());
-
-        javafx.collections.transformation.FilteredList<Movie> filteredData = new javafx.collections.transformation.FilteredList<>(movies, p -> true);
-        if (searchField != null) {
-            searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-                filteredData.setPredicate(movie -> {
-                    if (newValue == null || newValue.isEmpty()) return true;
-                    String lowerCaseFilter = newValue.toLowerCase();
-                    return movie.getTitle().toLowerCase().contains(lowerCaseFilter) ||
-                           movie.getGenre().toLowerCase().contains(lowerCaseFilter);
-                });
+        // Load live movies from DB in background thread to keep UI responsive
+        new Thread(() -> {
+            ShowDAO dao = new ShowDAO();
+            java.util.List<Movie> activeMovies = dao.getActiveMoviesWithShowtimes();
+            
+            Platform.runLater(() -> {
+                ObservableList<Movie> movies = FXCollections.observableArrayList(activeMovies);
+                FilteredList<Movie> filteredData = new FilteredList<>(movies, p -> true);
+                
+                if (searchField != null) {
+                    searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+                        filteredData.setPredicate(movie -> {
+                            if (newValue == null || newValue.isEmpty()) return true;
+                            String lowerCaseFilter = newValue.toLowerCase();
+                            return movie.getTitle().toLowerCase().contains(lowerCaseFilter) ||
+                                   movie.getGenre().toLowerCase().contains(lowerCaseFilter);
+                        });
+                    });
+                }
+                movieListView.setItems(filteredData);
             });
-        }
-        movieListView.setItems(filteredData);
+        }).start();
 
         // Custom ListCell for Movies
         movieListView.setCellFactory(lv -> new ListCell<Movie>() {
@@ -57,14 +72,12 @@ public class BookingTicketController {
                     setGraphic(null);
                     setStyle("-fx-background-color: transparent; -fx-padding: 0;");
                 } else {
-                    // Calculate total available seats for the movie
                     int availableSeats = movie.getShowtimes().stream().mapToInt(Showtime::getAvailableSeats).sum();
 
                     HBox box = new HBox(15);
                     box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                     box.setPadding(new Insets(20, 20, 20, 20));
                     
-                    // A sleek icon placeholder for the movie
                     Label iconLabel = new Label("🎬");
                     iconLabel.setStyle("-fx-font-size: 24px;");
                     
@@ -79,9 +92,8 @@ public class BookingTicketController {
                     
                     box.getChildren().addAll(iconLabel, textContainer);
                     
-                    // We wrap the content inside an invisible background pane to simulate margins
                     StackPane wrapper = new StackPane(box);
-                    wrapper.setPadding(new Insets(0, 0, 15, 0)); // bottom margin
+                    wrapper.setPadding(new Insets(0, 0, 15, 0));
                     
                     if (availableSeats == 0) {
                         box.getStyleClass().setAll("movie-list-item-sold-out");
@@ -91,7 +103,7 @@ public class BookingTicketController {
                     } else {
                         box.getStyleClass().setAll("movie-list-item");
                     }
-                    setDisable(false); // Don't disable so we keep colors
+                    setDisable(false);
                     
                     setStyle("-fx-background-color: transparent; -fx-padding: 0;");
                     setGraphic(wrapper);
@@ -106,12 +118,16 @@ public class BookingTicketController {
                 if (available > 0) {
                     showMovieDetails(newVal);
                 } else {
-                    javafx.application.Platform.runLater(() -> movieListView.getSelectionModel().clearSelection());
+                    Platform.runLater(() -> movieListView.getSelectionModel().clearSelection());
                 }
             }
         });
     }
 
+    /**
+     * Displays details and available showtimes for selected movie.
+     * @param movie selected Movie instance
+     */
     private void showMovieDetails(Movie movie) {
         emptyStatePane.setVisible(false);
         emptyStatePane.setManaged(false);
@@ -122,18 +138,15 @@ public class BookingTicketController {
         movieMetaLabel.setText(movie.getGenre() + " • " + movie.getRuntime());
         movieDescLabel.setText(movie.getDescription());
 
-        // Reset slot selection
         selectedShowtime = null;
         updateSelectSeatsButton();
         timeSlotsPane.getChildren().clear();
 
-        // Populate time slots
         for (Showtime slot : movie.getShowtimes()) {
             Button slotBtn = new Button(slot.getTime() + " - " + slot.getHall());
             slotBtn.getStyleClass().add("time-slot-btn");
             slotBtn.setOnAction(e -> {
                 selectedShowtime = slot;
-                // Update styles to reflect active
                 for (javafx.scene.Node node : timeSlotsPane.getChildren()) {
                     if (node instanceof Button) {
                         node.getStyleClass().remove("time-slot-btn-active");
@@ -150,6 +163,9 @@ public class BookingTicketController {
         }
     }
 
+    /**
+     * Updates the enable status and styling of the seat selection button.
+     */
     private void updateSelectSeatsButton() {
         if (selectedShowtime != null) {
             selectSeatsBtn.setDisable(false);
@@ -166,6 +182,9 @@ public class BookingTicketController {
         }
     }
 
+    /**
+     * Handles navigating to seat selection view for chosen showtime.
+     */
     @FXML
     public void handleSelectSeats() {
         try {
@@ -185,3 +204,4 @@ public class BookingTicketController {
         }
     }
 }
+

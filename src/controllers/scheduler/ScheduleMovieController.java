@@ -44,11 +44,22 @@ public class ScheduleMovieController implements Initializable {
     private ShowDAO showDAO = new ShowDAO();
     private List<LocalDate> addedDates = new ArrayList<>();
     private List<String> addedTimes = new ArrayList<>();
+    private String previousPage = "/views/scheduler/ShowScheduling.fxml";
+
+    public void setPreviousPage(String fxmlPath) {
+        this.previousPage = fxmlPath;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         List<Hall> halls = hallDAO.getAllHalls();
-        hallComboBox.setItems(FXCollections.observableArrayList(halls));
+        List<Hall> activeHalls = new ArrayList<>();
+        for (Hall h : halls) {
+            if ("ACTIVE".equalsIgnoreCase(h.getStatus())) {
+                activeHalls.add(h);
+            }
+        }
+        hallComboBox.setItems(FXCollections.observableArrayList(activeHalls));
     }
 
     public void setMovie(Movie movie) {
@@ -60,7 +71,8 @@ public class ScheduleMovieController implements Initializable {
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
-                Image image = new Image(movie.getPosterPath(), true);
+                String posterUrl = (movie.getPosterPath().startsWith("http") || movie.getPosterPath().startsWith("file:")) ? movie.getPosterPath() : utils.TMDBUtils.getImageUrl(movie.getPosterPath(), "w500");
+                Image image = new Image(posterUrl, true);
                 moviePoster.setImage(image);
             } catch (Exception e) {
                 System.out.println("Could not load image: " + movie.getPosterPath());
@@ -250,7 +262,7 @@ public class ScheduleMovieController implements Initializable {
 
     @FXML
     public void handleBack(ActionEvent event) {
-        MainLayoutController.getInstance().loadPageDirectly("/views/scheduler/ShowScheduling.fxml");
+        MainLayoutController.getInstance().loadPageDirectly(previousPage);
     }
 
     private void showError(String message) {

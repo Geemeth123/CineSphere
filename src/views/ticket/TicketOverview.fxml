@@ -7,7 +7,7 @@
     <!-- Header Area -->
     <HBox alignment="CENTER_LEFT">
         <VBox spacing="5" HBox.hgrow="ALWAYS">
-            <Label text="Ticket Counter" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+            <Label text="Ticket Counter" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #212529;"/>
             <Label text="Welcome back, Counter Staff. Have a great shift." style="-fx-font-size: 14px; -fx-text-fill: #6c757d;"/>
         </VBox>
         <Button text="+ New Booking" onAction="#handleNewBooking" styleClass="action-btn" />
@@ -46,7 +46,6 @@
         <Label text="Today's Schedule" style="-fx-font-size: 20px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
         <Region HBox.hgrow="ALWAYS"/>
         <TextField fx:id="searchField" promptText="Search movies.." styleClass="search-field"/>
-        <Button text="Search" styleClass="search-btn"/>
     </HBox>
 
     <!-- TableView -->

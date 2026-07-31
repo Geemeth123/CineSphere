@@ -132,7 +132,15 @@ public class MainLayoutController {
             contentArea.getChildren().add(root);
         } catch (IOException e) {
             e.printStackTrace();
-            Label errorLabel = new Label("Failed to load page: " + fxmlPath);
+            String errorMsg = "Failed to load page: " + fxmlPath + "\n";
+            errorMsg += e.toString() + "\n";
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                errorMsg += "Caused by: " + cause.toString() + "\n";
+                cause = cause.getCause();
+            }
+            Label errorLabel = new Label(errorMsg);
+            errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
             contentArea.getChildren().clear();
             contentArea.getChildren().add(errorLabel);
         }
@@ -144,7 +152,12 @@ public class MainLayoutController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/Login.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
+            if (stage.getScene() != null) {
+                stage.getScene().setRoot(root);
+            } else {
+                stage.setScene(new Scene(root));
+            }
+            stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -174,5 +187,20 @@ public class MainLayoutController {
             btn.getStyleClass().remove("nav-button-active");
         }
         loadPage(fxmlPath);
+    }
+    
+    public void loadPageDirectly(javafx.scene.Parent root) {
+        for (Button btn : navButtons) {
+            if (!btn.getStyleClass().contains("nav-button")) {
+                btn.getStyleClass().add("nav-button");
+            }
+            btn.getStyleClass().remove("nav-button-active");
+        }
+        contentArea.getChildren().clear();
+        contentArea.getChildren().add(root);
+    }
+    
+    public User getCurrentUser() {
+        return currentUser;
     }
 }

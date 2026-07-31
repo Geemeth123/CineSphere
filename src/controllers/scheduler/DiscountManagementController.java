@@ -145,7 +145,7 @@ public class DiscountManagementController implements Initializable {
         typeCombo.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             itemCombo.getItems().clear();
             if ("MOVIE".equals(newVal)) {
-                itemCombo.setItems(FXCollections.observableArrayList(movieDAO.getAllMovies()));
+                itemCombo.setItems(FXCollections.observableArrayList(movieDAO.getMoviesForScheduling()));
             } else if ("SHOW".equals(newVal)) {
                 itemCombo.setItems(FXCollections.observableArrayList(showDAO.getUpcomingShows()));
             } else if ("SNACK".equals(newVal)) {
@@ -181,6 +181,10 @@ public class DiscountManagementController implements Initializable {
                     if (type == null || item == null || pctStr.isEmpty() || status == null) return null;
                     
                     BigDecimal pct = new BigDecimal(pctStr);
+                    if (pct.compareTo(BigDecimal.ZERO) < 0 || pct.compareTo(new BigDecimal(100)) > 0) {
+                        return null;
+                    }
+                    
                     int targetId = 0;
                     if (item instanceof Movie) {
                         targetId = Integer.parseInt(((Movie)item).getId().replace("M", ""));
@@ -300,6 +304,10 @@ public class DiscountManagementController implements Initializable {
                     if (code.isEmpty() || pctStr.isEmpty() || status == null) return null;
                     
                     BigDecimal pct = new BigDecimal(pctStr);
+                    if (pct.compareTo(BigDecimal.ZERO) < 0 || pct.compareTo(new BigDecimal(100)) > 0) {
+                        return null;
+                    }
+                    
                     return new PromoCode(0, code, pct, status, null);
                 } catch (Exception e) {
                     return null;

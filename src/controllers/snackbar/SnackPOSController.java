@@ -23,7 +23,7 @@ import models.BookingDAO;
 import models.BookingPOSDetails;
 import models.PromoCode;
 import models.PromoCodeDAO;
-import utils.SnackReceiptGenerator;
+import javafx.fxml.FXMLLoader;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -270,6 +270,11 @@ public class SnackPOSController {
         imageRegion.setMinSize(180, 110);
         imageRegion.setMaxSize(180, 110);
         
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(180, 130);
+        clip.setArcWidth(24);
+        clip.setArcHeight(24);
+        imageRegion.setClip(clip);
+        
         if (snack.getImagePath() != null && !snack.getImagePath().isEmpty()) {
             java.io.File file = new java.io.File(snack.getImagePath());
             if (file.exists()) {
@@ -287,16 +292,16 @@ public class SnackPOSController {
 
         Label nameLabel = new Label(snack.getName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-        nameLabel.setTextFill(Color.web("#111111"));
+        nameLabel.setTextFill(Color.web("#212529"));
         nameLabel.setWrapText(true);
 
         Label categoryLabel = new Label(snack.getCategory());
         categoryLabel.setFont(Font.font("System", 12));
-        categoryLabel.setTextFill(Color.web("#888888"));
+        categoryLabel.setTextFill(Color.web("#6c757d"));
 
         Label priceLabel = new Label(String.format("$%.2f", snack.getPrice()));
         priceLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
-        priceLabel.setTextFill(Color.web("#0066ff"));
+        priceLabel.setTextFill(Color.web("#0d6efd"));
 
         HBox stockBox = new HBox(5);
         Label qtyLabel = new Label("Stock: " + snack.getQuantity());
@@ -315,12 +320,11 @@ public class SnackPOSController {
 
         Button addBtn = new Button("Add to Cart");
         addBtn.setMaxWidth(Double.MAX_VALUE);
-        addBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-cursor: hand; -fx-font-weight: bold;");
+        addBtn.getStyleClass().add("primary-action-btn");
         
         if (snack.getQuantity() <= 0) {
             addBtn.setDisable(true);
             addBtn.setText("Out of Stock");
-            addBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #888888; -fx-border-radius: 4px; -fx-background-radius: 4px;");
         }
         
         addBtn.setOnAction(e -> handleAddFromCard(snack));
@@ -375,7 +379,7 @@ public class SnackPOSController {
             showAlert("Success", promo.getDiscountPercentage() + "% Discount Applied!");
         } else {
             currentDiscountPercentage = BigDecimal.ZERO;
-            showAlert("Error", "Invalid discount code.");
+            showAlert("Error", "Invalid or inactive discount code.");
         }
         updateTotals();
     }
@@ -430,8 +434,12 @@ public class SnackPOSController {
             SnackSale sale = new SnackSale();
             sale.setTotalAmount(finalTotal);
             sale.setBookingId(currentBookingId);
-            // Defaulting user_id to 1 (Admin) for now as there's no global SessionManager
-            sale.setUserId(1);
+            
+            int userId = 1; // Default fallback
+            if (controllers.MainLayoutController.getInstance() != null && controllers.MainLayoutController.getInstance().getCurrentUser() != null) {
+                userId = controllers.MainLayoutController.getInstance().getCurrentUser().getId();
+            }
+            sale.setUserId(userId);
 
             List<SnackSaleItem> itemsToSave = new ArrayList<>();
             for (SnackSaleItem cItem : cartData) {
@@ -442,8 +450,20 @@ public class SnackPOSController {
             try {
                 boolean success = saleDAO.createSale(sale, itemsToSave);
                 if (success) {
-                    showAlert("Success", "Sale completed successfully! Generating Receipt...");
-                    SnackReceiptGenerator.generateAndOpenReceipt(sale, itemsToSave);
+                    showAlert("Success", "Sale completed successfully!");
+                    
+                    // Route to receipt page
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/snackbar/SnackReceipt.fxml"));
+                        javafx.scene.Parent root = loader.load();
+                        
+                        SnackReceiptController controller = loader.getController();
+                        controller.setReceiptData(sale, itemsToSave);
+                        
+                        controllers.MainLayoutController.getInstance().loadPageDirectly(root);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                     
                     cartData.clear();
                     currentDiscountPercentage = BigDecimal.ZERO;

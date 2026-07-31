@@ -10,23 +10,6 @@ import java.util.List;
 public class PromoCodeDAO {
 
     public PromoCodeDAO() {
-        initializeTable();
-    }
-
-    private void initializeTable() {
-        String sql = "CREATE TABLE IF NOT EXISTS promo_codes (" +
-                     "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                     "code VARCHAR(50) NOT NULL UNIQUE, " +
-                     "discount_percentage DECIMAL(5,2) NOT NULL, " +
-                     "status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE', " +
-                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                     ")";
-        try (Connection conn = DBUtils.getConnection();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     public List<PromoCode> getAllPromoCodes() {

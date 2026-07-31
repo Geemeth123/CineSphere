@@ -23,6 +23,13 @@ public class AddHallController {
 
     public boolean saveSuccessful = false;
     private HallDAO hallDAO = new HallDAO();
+    
+    private static final int MAX_ROWS = 10;
+    private static final int MAX_COLS = 15;
+
+    private boolean exceedsLimits(int rows, int cols) {
+        return rows > MAX_ROWS || cols > MAX_COLS;
+    }
 
     @FXML
     public void initialize() {
@@ -50,8 +57,8 @@ public class AddHallController {
             int r = Integer.parseInt(rText);
             int c = Integer.parseInt(cText);
             
-            if (r > 10 || c > 15) {
-                showError("Max limit exceeded: Rows (10 max), Columns (15 max).");
+            if (exceedsLimits(r, c)) {
+                showError("Max limit exceeded: Rows (" + MAX_ROWS + " max), Columns (" + MAX_COLS + " max).");
                 return;
             }
             
@@ -98,8 +105,8 @@ public class AddHallController {
                 return;
             }
             
-            if (rows > 10 || cols > 15) {
-                showError("Max limit exceeded: Rows (10 max), Columns (15 max).");
+            if (exceedsLimits(rows, cols)) {
+                showError("Max limit exceeded: Rows (" + MAX_ROWS + " max), Columns (" + MAX_COLS + " max).");
                 return;
             }
 

@@ -58,7 +58,7 @@ public class AddSnackController {
             titleLabel.setText("Add New Snack");
             statusCombo.setValue("ACTIVE");
             quantityField.setText("0");
-            minStockField.setText("0");
+            minStockField.setText("10");
             costPriceField.setText("0.00");
             imagePathLabel.setText("No file selected");
         }
@@ -159,6 +159,12 @@ public class AddSnackController {
                 showAlert("Validation Error", "Price cannot be negative.");
                 return false;
             }
+            
+            BigDecimal cp = new BigDecimal(costPriceStr);
+            if (cp.compareTo(BigDecimal.ZERO) < 0) {
+                showAlert("Validation Error", "Cost price cannot be negative.");
+                return false;
+            }
         } catch (NumberFormatException e) {
             showAlert("Validation Error", "Price must be a valid number.");
             return false;
@@ -179,6 +185,12 @@ public class AddSnackController {
             int q = Integer.parseInt(qtyStr);
             if (q < 0) {
                 showAlert("Validation Error", "Quantity cannot be negative.");
+                return false;
+            }
+            
+            int ms = Integer.parseInt(minStockStr);
+            if (ms < 0) {
+                showAlert("Validation Error", "Min stock cannot be negative.");
                 return false;
             }
         } catch (NumberFormatException e) {

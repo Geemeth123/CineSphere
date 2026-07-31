@@ -3,6 +3,9 @@ package controllers.snackbar;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import java.io.IOException;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
@@ -276,7 +279,17 @@ public class SnackBillsController {
     @FXML
     public void handlePrintReceipt() {
         if (currentSelectedSale != null && !itemsData.isEmpty()) {
-            utils.SnackReceiptGenerator.generateAndOpenReceipt(currentSelectedSale, itemsData);
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/snackbar/SnackReceipt.fxml"));
+                Parent root = loader.load();
+                
+                SnackReceiptController controller = loader.getController();
+                controller.setReceiptData(currentSelectedSale, itemsData);
+                
+                controllers.MainLayoutController.getInstance().loadPageDirectly(root);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

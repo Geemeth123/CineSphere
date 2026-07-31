@@ -147,24 +147,6 @@ public class ShowSchedulingController implements Initializable {
 
 
 
-    private void handleAddSchedule(Movie movie) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/scheduler/ScheduleMovie.fxml"));
-            javafx.scene.Parent root = loader.load();
-            
-            ScheduleMovieController controller = loader.getController();
-            controller.setMovie(movie);
-            
-            javafx.scene.layout.StackPane contentArea = (javafx.scene.layout.StackPane) moviesGrid.getScene().lookup("#contentArea");
-            if (contentArea != null) {
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(root);
-            }
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
     private void handleManageSchedules(Movie movie) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/scheduler/ManageMovieSchedules.fxml"));
@@ -173,11 +155,7 @@ public class ShowSchedulingController implements Initializable {
             ManageMovieSchedulesController controller = loader.getController();
             controller.setMovie(movie);
             
-            javafx.scene.layout.StackPane contentArea = (javafx.scene.layout.StackPane) moviesGrid.getScene().lookup("#contentArea");
-            if (contentArea != null) {
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(root);
-            }
+            controllers.MainLayoutController.getInstance().loadPageDirectly(root);
         } catch (java.io.IOException e) {
             e.printStackTrace();
         }

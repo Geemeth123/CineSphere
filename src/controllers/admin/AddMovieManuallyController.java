@@ -20,6 +20,7 @@ public class AddMovieManuallyController {
 
     @FXML private TextField titleField;
     @FXML private TextField taglineField;
+    @FXML private TextField genreField;
     @FXML private ComboBox<String> genreComboBox;
     @FXML private TextField durationField;
     @FXML private TextField ratingField;
@@ -42,10 +43,12 @@ public class AddMovieManuallyController {
     
     @FXML
     public void initialize() {
-        genreComboBox.getItems().addAll(
-            "Action", "Comedy", "Drama", "Sci-Fi", "Horror", "Romance", "Thriller", "Documentary", "Animation", "Family"
-        );
-        genreComboBox.getSelectionModel().selectFirst();
+        if (genreComboBox != null) {
+            genreComboBox.getItems().addAll(
+                "Action", "Comedy", "Drama", "Sci-Fi", "Horror", "Romance", "Thriller", "Documentary", "Animation", "Family"
+            );
+            genreComboBox.getSelectionModel().selectFirst();
+        }
     }
 
     @FXML
@@ -85,23 +88,33 @@ public class AddMovieManuallyController {
 
     @FXML
     public void handleSave() {
-        String title = titleField.getText().trim();
-        String tagline = taglineField.getText().trim();
-        String genre = genreComboBox.getValue();
-        String duration = durationField.getText().trim();
-        String synopsis = synopsisArea.getText().trim();
-        String ratingStr = ratingField.getText().trim();
-        String popularityStr = popularityField.getText().trim();
-        String releaseDate = releaseDateField.getText().trim();
-        String adultPriceStr = adultPriceField.getText().trim();
-        String kidsPriceStr = kidsPriceField.getText().trim();
+        String title = titleField != null ? titleField.getText().trim() : "";
+        String tagline = taglineField != null ? taglineField.getText().trim() : "";
+        String genre = "";
+        if (genreComboBox != null && genreComboBox.getValue() != null) {
+            genre = genreComboBox.getValue();
+        } else if (genreField != null) {
+            genre = genreField.getText().trim();
+        }
+        String duration = durationField != null ? durationField.getText().trim() : "";
+        String synopsis = synopsisArea != null ? synopsisArea.getText().trim() : "";
+        String ratingStr = ratingField != null && !ratingField.getText().trim().isEmpty() ? ratingField.getText().trim() : "0.0";
+        String popularityStr = popularityField != null && !popularityField.getText().trim().isEmpty() ? popularityField.getText().trim() : "0.0";
+        
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String releaseDate = releaseDateField != null && !releaseDateField.getText().trim().isEmpty() ? releaseDateField.getText().trim() : "";
+        if (releaseDate.isEmpty() && showingFromPicker != null && showingFromPicker.getValue() != null) {
+            releaseDate = showingFromPicker.getValue().format(dtf);
+        }
+        
+        String adultPriceStr = adultPriceField != null ? adultPriceField.getText().trim() : "";
+        String kidsPriceStr = kidsPriceField != null ? kidsPriceField.getText().trim() : "";
 
-        if (title.isEmpty() || genre == null || duration.isEmpty() || synopsis.isEmpty() ||
-            ratingStr.isEmpty() || popularityStr.isEmpty() || releaseDate.isEmpty() ||
-            adultPriceStr.isEmpty() || kidsPriceStr.isEmpty() || showingFromPicker.getValue() == null ||
-            showingUntilPicker.getValue() == null || posterPath.isEmpty() || bannerPath.isEmpty()) {
+        if (title.isEmpty() || genre.isEmpty() || duration.isEmpty() || synopsis.isEmpty() ||
+            adultPriceStr.isEmpty() || kidsPriceStr.isEmpty() || showingFromPicker == null || showingFromPicker.getValue() == null ||
+            showingUntilPicker == null || showingUntilPicker.getValue() == null || posterPath.isEmpty() || bannerPath.isEmpty()) {
             
-            Alert alert = new Alert(Alert.AlertType.ERROR, "All fields are required. Please fill in all fields and select images.");
+            Alert alert = new Alert(Alert.AlertType.ERROR, "All required fields must be filled and images selected.");
             alert.showAndWait();
             return;
         }
@@ -124,7 +137,6 @@ public class AddMovieManuallyController {
                 return;
             }
             
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             if (showingUntilPicker.getValue().isBefore(showingFromPicker.getValue())) {
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Showing Until date cannot be before Showing From date.");
                 alert.showAndWait();
@@ -133,28 +145,32 @@ public class AddMovieManuallyController {
             String showingFrom = showingFromPicker.getValue().format(dtf);
             String showingUntil = showingUntilPicker.getValue().format(dtf);
 
-            try {
-                java.time.LocalDate.parse(releaseDate, dtf);
-            } catch (Exception e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Release Date must be in YYYY-MM-DD format.");
-                alert.showAndWait();
-                return;
+            if (!releaseDate.isEmpty()) {
+                try {
+                    java.time.LocalDate.parse(releaseDate, dtf);
+                } catch (Exception e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Release Date must be in YYYY-MM-DD format.");
+                    alert.showAndWait();
+                    return;
+                }
             }
             
             // Copy files locally
             try {
-                java.io.File dir = new java.io.File(System.getProperty("user.dir") + "/data/movie");
-                if (!dir.exists()) dir.mkdirs();
+                java.io.File posterDir = new java.io.File("movies/posters");
+                java.io.File bannerDir = new java.io.File("movies/banners");
+                if (!posterDir.exists()) posterDir.mkdirs();
+                if (!bannerDir.exists()) bannerDir.mkdirs();
                 
                 if (posterPath.startsWith("file:/")) {
                     java.io.File src = new java.io.File(java.net.URI.create(posterPath));
-                    java.io.File dest = new java.io.File(dir, "manual_poster_" + System.currentTimeMillis() + "_" + src.getName());
+                    java.io.File dest = new java.io.File(posterDir, "manual_poster_" + System.currentTimeMillis() + "_" + src.getName());
                     java.nio.file.Files.copy(src.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                     posterPath = dest.toURI().toString();
                 }
                 if (bannerPath.startsWith("file:/")) {
                     java.io.File src = new java.io.File(java.net.URI.create(bannerPath));
-                    java.io.File dest = new java.io.File(dir, "manual_banner_" + System.currentTimeMillis() + "_" + src.getName());
+                    java.io.File dest = new java.io.File(bannerDir, "manual_banner_" + System.currentTimeMillis() + "_" + src.getName());
                     java.nio.file.Files.copy(src.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                     bannerPath = dest.toURI().toString();
                 }

@@ -5,8 +5,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data Access Object for managing snack inventory items in the database.
+ */
 public class SnackDAO {
 
+    /**
+     * Retrieves all snacks registered in the system.
+     * @return List of all Snack objects
+     */
     public List<Snack> getAllSnacks() {
         List<Snack> snacks = new ArrayList<>();
         String query = "SELECT * FROM snacks";
@@ -22,6 +29,7 @@ public class SnackDAO {
         }
         return snacks;
     }
+
 
     public List<Snack> getActiveSnacks() {
         List<Snack> snacks = new ArrayList<>();
@@ -96,9 +104,20 @@ public class SnackDAO {
         String query = "UPDATE snacks SET quantity = GREATEST(0, quantity + ?) WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
-
             stmt.setInt(1, quantityChange);
             stmt.setInt(2, snackId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteSnack(int id) {
+        String query = "DELETE FROM snacks WHERE id = ?";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

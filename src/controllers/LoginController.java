@@ -75,9 +75,13 @@ public class LoginController {
             mainController.initData(user);
             
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
+            if (stage.getScene() != null) {
+                stage.getScene().setRoot(root);
+            } else {
+                stage.setScene(new Scene(root));
+            }
             stage.setMaximized(true);
+            stage.show();
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -9,6 +9,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -76,6 +78,11 @@ public class SnackManagementController {
         imageRegion.setMinSize(220, 140);
         imageRegion.setMaxSize(220, 140);
         
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(220, 160);
+        clip.setArcWidth(24);
+        clip.setArcHeight(24);
+        imageRegion.setClip(clip);
+        
         if (snack.getImagePath() != null && !snack.getImagePath().isEmpty()) {
             java.io.File file = new java.io.File(snack.getImagePath());
             if (file.exists()) {
@@ -93,16 +100,16 @@ public class SnackManagementController {
 
         Label nameLabel = new Label(snack.getName());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
-        nameLabel.setTextFill(Color.web("#111111"));
+        nameLabel.setTextFill(Color.web("#212529"));
         nameLabel.setWrapText(true);
 
         Label categoryLabel = new Label(snack.getCategory());
         categoryLabel.setFont(Font.font("System", 12));
-        categoryLabel.setTextFill(Color.web("#888888"));
+        categoryLabel.setTextFill(Color.web("#6c757d"));
 
         Label priceLabel = new Label(String.format("$%.2f", snack.getPrice()));
         priceLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-        priceLabel.setTextFill(Color.web("#0066ff"));
+        priceLabel.setTextFill(Color.web("#0d6efd"));
 
         HBox statusBox = new HBox(5);
         Label qtyLabel = new Label("Qty: " + snack.getQuantity());
@@ -127,14 +134,41 @@ public class SnackManagementController {
         HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
         statusBox.getChildren().addAll(qtyLabel, spacer, statusLabel);
 
-        Button editBtn = new Button("Edit Snack");
+        Button editBtn = new Button("Edit");
         editBtn.setMaxWidth(Double.MAX_VALUE);
-        editBtn.setStyle("-fx-background-color: white; -fx-border-color: #0066ff; -fx-text-fill: #0066ff; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-cursor: hand;");
+        javafx.scene.layout.HBox.setHgrow(editBtn, javafx.scene.layout.Priority.ALWAYS);
+        editBtn.getStyleClass().add("secondary-action-btn");
         editBtn.setOnAction(e -> openEditPage(snack));
 
-        detailsBox.getChildren().addAll(nameLabel, categoryLabel, priceLabel, statusBox, editBtn);
+        Button deleteBtn = new Button("Delete");
+        deleteBtn.setMaxWidth(Double.MAX_VALUE);
+        javafx.scene.layout.HBox.setHgrow(deleteBtn, javafx.scene.layout.Priority.ALWAYS);
+        deleteBtn.getStyleClass().add("danger-action-btn");
+        deleteBtn.setOnAction(e -> handleDeleteSnack(snack));
+
+        HBox actionBox = new HBox(10, editBtn, deleteBtn);
+        actionBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+        detailsBox.getChildren().addAll(nameLabel, categoryLabel, priceLabel, statusBox, actionBox);
         card.getChildren().addAll(imageRegion, detailsBox);
         return card;
+    }
+
+    private void handleDeleteSnack(Snack snack) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Snack");
+        alert.setHeaderText("Delete " + snack.getName() + "?");
+        alert.setContentText("Are you sure you want to delete this snack?");
+        java.util.Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (snackDAO.deleteSnack(snack.getId())) {
+                utils.ImageUtils.deleteImage(snack.getImagePath());
+                loadData();
+            } else {
+                Alert error = new Alert(Alert.AlertType.ERROR, "Failed to delete snack. It might be used in sales.");
+                error.showAndWait();
+            }
+        }
     }
 
     @FXML

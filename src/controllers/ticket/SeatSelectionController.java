@@ -28,8 +28,8 @@ public class SeatSelectionController {
 
     private int adultCount = 0;
     private int childCount = 0;
-    private final double ADULT_PRICE = 350.0;
-    private final double CHILD_PRICE = 200.0;
+    private double adultPrice = 350.0;
+    private double childPrice = 200.0;
     
     private List<String> selectedSeats = new ArrayList<>();
     
@@ -46,23 +46,47 @@ public class SeatSelectionController {
         movieTitleLabel.setText(title);
         showtimeLabel.setText(details);
         
+        try (java.sql.Connection conn = utils.DBUtils.getConnection();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT m.adult_price, m.kids_price FROM shows s JOIN movies m ON s.movie_id = m.id WHERE s.id = ?")) {
+            int sId = Integer.parseInt(showId.replace("SH-", ""));
+            stmt.setInt(1, sId);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    double ap = rs.getDouble("adult_price");
+                    double kp = rs.getDouble("kids_price");
+                    if (ap > 0) this.adultPrice = ap;
+                    if (kp > 0) this.childPrice = kp;
+                }
+            }
+        } catch (Exception e) {}
+        
         generateSeatGrid();
         updateSummary();
     }
 
     private void generateSeatGrid() {
-        models.BookingDAO dao = new models.BookingDAO();
-        int[] dims = dao.getHallDimensions(showId);
-        int rows = dims[0];
-        int cols = dims[1];
-        
-        List<String> mockBooked = dao.getBookedSeats(showId);
-        
-        int hallId = dao.getHallId(showId);
-        models.HallDAO hallDAO = new models.HallDAO();
-        List<String> maintenanceSeats = hallDAO.getMaintenanceSeats(hallId);
-        
-        buildSeatGrid(rows, cols, mockBooked, maintenanceSeats);
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                models.BookingDAO dao = new models.BookingDAO();
+                int[] dims = dao.getHallDimensions(showId);
+                int rows = dims[0];
+                int cols = dims[1];
+                
+                List<String> mockBooked = dao.getBookedSeats(showId);
+                
+                int hallId = dao.getHallId(showId);
+                models.HallDAO hallDAO = new models.HallDAO();
+                List<String> maintenanceSeats = hallDAO.getMaintenanceSeats(hallId);
+                
+                javafx.application.Platform.runLater(() -> {
+                    buildSeatGrid(rows, cols, mockBooked, maintenanceSeats);
+                });
+                return null;
+            }
+        };
+        new Thread(task).start();
     }
 
     // Reusable method for rendering a seat grid given specific data
@@ -189,7 +213,7 @@ public class SeatSelectionController {
         adultCountLabel.setText(String.valueOf(adultCount));
         childCountLabel.setText(String.valueOf(childCount));
 
-        double total = (adultCount * ADULT_PRICE) + (childCount * CHILD_PRICE);
+        double total = (adultCount * adultPrice) + (childCount * childPrice);
         totalAmountLabel.setText(String.format("$%.2f", total));
 
         // Enable proceed if at least 1 seat selected AND ticket count matches seat count
@@ -225,7 +249,7 @@ public class SeatSelectionController {
 
     @FXML
     public void handleProceed() {
-        double total = (adultCount * ADULT_PRICE) + (childCount * CHILD_PRICE);
+        double total = (adultCount * adultPrice) + (childCount * childPrice);
         String formattedTotal = String.format("$%.2f", total);
         
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -241,41 +265,59 @@ public class SeatSelectionController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            proceedBtn.setDisable(true);
+            proceedBtn.setText("Booking...");
             
-            // 1. Save Booking to DB
-            models.BookingDAO dao = new models.BookingDAO();
-            // Using a dummy user ID = 2 for Counter Staff
-            String bookingId = dao.createBooking(showId, 2, adultCount, childCount, total, selectedSeats);
-            
-            if (bookingId != null) {
-                System.out.println("Booking confirmed and saved to DB! ID: " + bookingId);
-                
-                // Route to Booking Confirmed
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ticket/BookingConfirmed.fxml"));
-                    Parent root = loader.load();
-                    
-                    BookingConfirmedController controller = loader.getController();
-                    controller.setReceiptData(
-                        bookingId,
-                        movieTitle,
-                        showtimeDetails,
-                        String.join(", ", selectedSeats),
-                        formattedTotal
-                    );
-                    
-                    StackPane contentArea = (StackPane) proceedBtn.getScene().lookup("#contentArea");
-                    if (contentArea != null) {
-                        contentArea.getChildren().clear();
-                        contentArea.getChildren().add(root);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            javafx.concurrent.Task<String> task = new javafx.concurrent.Task<String>() {
+                @Override
+                protected String call() throws Exception {
+                    models.BookingDAO dao = new models.BookingDAO();
+                    // Using a dummy user ID = 2 for Counter Staff
+                    return dao.createBooking(showId, 2, adultCount, childCount, total, selectedSeats);
                 }
-            } else {
-                Alert err = new Alert(Alert.AlertType.ERROR, "Failed to save booking to database!");
+            };
+            
+            task.setOnSucceeded(e -> {
+                String bookingId = task.getValue();
+                if (bookingId != null) {
+                    System.out.println("Booking confirmed and saved to DB! ID: " + bookingId);
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ticket/BookingConfirmed.fxml"));
+                        Parent root = loader.load();
+                        
+                        BookingConfirmedController controller = loader.getController();
+                        controller.setReceiptData(
+                            bookingId,
+                            movieTitle,
+                            showtimeDetails,
+                            String.join(", ", selectedSeats),
+                            formattedTotal
+                        );
+                        
+                        StackPane contentArea = (StackPane) proceedBtn.getScene().lookup("#contentArea");
+                        if (contentArea != null) {
+                            contentArea.getChildren().clear();
+                            contentArea.getChildren().add(root);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                } else {
+                    Alert err = new Alert(Alert.AlertType.ERROR, "Failed to save booking to database!");
+                    err.show();
+                    proceedBtn.setText("Proceed to Booking");
+                    updateSummary();
+                }
+            });
+            
+            task.setOnFailed(e -> {
+                Alert err = new Alert(Alert.AlertType.ERROR, "An error occurred during booking!");
                 err.show();
-            }
+                proceedBtn.setText("Proceed to Booking");
+                updateSummary();
+            });
+            
+            new Thread(task).start();
         }
     }
 }

@@ -20,25 +20,7 @@ public class MovieDAO {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                String id = "M" + rs.getInt("id");
-                String title = rs.getString("title");
-                String genre = rs.getString("genre");
-                String duration = rs.getInt("duration_minutes") + " mins";
-                String description = rs.getString("description");
-                
-                Movie movie = new Movie(id, title, genre, duration, description, new ArrayList<>());
-                movie.setTmdbId(rs.getInt("tmdb_id"));
-                if (rs.wasNull()) {
-                    movie.setTmdbId(-1);
-                }
-                movie.setPosterPath(rs.getString("poster_path"));
-                movie.setBannerPath(rs.getString("banner_path"));
-                movie.setShowingFrom(rs.getString("showing_from"));
-                movie.setShowingUntil(rs.getString("showing_until"));
-                movie.setAdultPrice(rs.getDouble("adult_price"));
-                movie.setKidsPrice(rs.getDouble("kids_price"));
-                
-                movies.add(movie);
+                movies.add(mapRowToMovie(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -97,7 +79,59 @@ public class MovieDAO {
         return false;
     }
 
+    private String downloadImage(String imageUrl, String subfolder, String fileName) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return "";
+        }
+        if (imageUrl.startsWith("file:") || imageUrl.startsWith("file:/") || new java.io.File(imageUrl).exists()) {
+            return imageUrl;
+        }
+        
+        try {
+            java.io.File dir = new java.io.File("movies/" + subfolder);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            
+            java.io.File dest = new java.io.File(dir, fileName);
+            
+            java.net.URL url = new java.net.URL(imageUrl);
+            try (java.io.InputStream in = url.openStream();
+                 java.io.OutputStream out = new java.io.FileOutputStream(dest)) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+            }
+            return dest.toURI().toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Failed to download image " + imageUrl + ": " + e.getMessage());
+            return imageUrl;
+        }
+    }
+
     public Movie createMovie(MovieDTO dto) {
+        String posterUrl = (dto.poster_path != null && !dto.poster_path.isEmpty()) ? utils.TMDBUtils.getImageUrl(dto.poster_path, "w500") : "";
+        String bannerUrl = (dto.backdrop_path != null && !dto.backdrop_path.isEmpty()) ? utils.TMDBUtils.getImageUrl(dto.backdrop_path, "original") : "";
+
+        String localPosterPath = "";
+        String localBannerPath = "";
+
+        if (!posterUrl.isEmpty()) {
+            String fileName = dto.id + "_" + new java.io.File(dto.poster_path).getName();
+            localPosterPath = downloadImage(posterUrl, "posters", fileName);
+        } else {
+            localPosterPath = dto.poster_path;
+        }
+        if (!bannerUrl.isEmpty()) {
+            String fileName = dto.id + "_" + new java.io.File(dto.backdrop_path).getName();
+            localBannerPath = downloadImage(bannerUrl, "banners", fileName);
+        } else {
+            localBannerPath = dto.backdrop_path;
+        }
+
         String sql = "INSERT INTO movies (title, description, duration_minutes, genre, tmdb_id, poster_path, banner_path, status, adult_price, kids_price) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', 0, 0)";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
@@ -115,18 +149,18 @@ public class MovieDAO {
             stmt.setString(4, genre);
             
             stmt.setInt(5, dto.id);
-            stmt.setString(6, dto.poster_path);
-            stmt.setString(7, dto.backdrop_path);
+            stmt.setString(6, localPosterPath);
+            stmt.setString(7, localBannerPath);
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         int id = rs.getInt(1);
-                        Movie m = new Movie("M" + id, dto.title, genre, stmt.getParameterMetaData() != null ? "120 mins" : "120 mins", dto.overview, new ArrayList<>());
+                        Movie m = new Movie("M" + id, dto.title, genre, "120 mins", dto.overview, new ArrayList<>());
                         m.setTmdbId(dto.id);
-                        m.setPosterPath(dto.poster_path);
-                        m.setBannerPath(dto.backdrop_path);
+                        m.setPosterPath(localPosterPath);
+                        m.setBannerPath(localBannerPath);
                         return m;
                     }
                 }
@@ -174,7 +208,7 @@ public class MovieDAO {
         return false;
     }
 
-    public List<Movie> getAllMovies() {
+    public List<Movie> getMoviesForScheduling() {
         return getActiveMovies(); // For scheduling, we only care about active movies
     }
 
@@ -185,29 +219,7 @@ public class MovieDAO {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    String movieId = "M" + rs.getInt("id");
-                    String title = rs.getString("title");
-                    String genre = rs.getString("genre");
-                    String duration = rs.getInt("duration_minutes") + " mins";
-                    String description = rs.getString("description");
-                    
-                    Movie movie = new Movie(movieId, title, genre, duration, description, new ArrayList<>());
-                    movie.setTmdbId(rs.getInt("tmdb_id"));
-                    if (rs.wasNull()) {
-                        movie.setTmdbId(-1);
-                    }
-                    movie.setPosterPath(rs.getString("poster_path"));
-                    movie.setBannerPath(rs.getString("banner_path"));
-                    movie.setShowingFrom(rs.getString("showing_from"));
-                    movie.setShowingUntil(rs.getString("showing_until"));
-                    movie.setAdultPrice(rs.getDouble("adult_price"));
-                    movie.setKidsPrice(rs.getDouble("kids_price"));
-                    movie.setRating(rs.getDouble("rating"));
-                    movie.setPopularity(rs.getDouble("popularity"));
-                    movie.setReleaseDate(rs.getString("release_date"));
-                    movie.setTagline(rs.getString("tagline"));
-                    
-                    return movie;
+                    return mapRowToMovie(rs);
                 }
             }
         } catch (SQLException e) {
@@ -225,29 +237,7 @@ public class MovieDAO {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                String id = "M" + rs.getInt("id");
-                String title = rs.getString("title");
-                String genre = rs.getString("genre");
-                String duration = rs.getInt("duration_minutes") + " mins";
-                String description = rs.getString("description");
-                
-                Movie movie = new Movie(id, title, genre, duration, description, new ArrayList<>());
-                movie.setTmdbId(rs.getInt("tmdb_id"));
-                if (rs.wasNull()) {
-                    movie.setTmdbId(-1);
-                }
-                movie.setPosterPath(rs.getString("poster_path"));
-                movie.setBannerPath(rs.getString("banner_path"));
-                movie.setShowingFrom(rs.getString("showing_from"));
-                movie.setShowingUntil(rs.getString("showing_until"));
-                movie.setAdultPrice(rs.getDouble("adult_price"));
-                movie.setKidsPrice(rs.getDouble("kids_price"));
-                movie.setRating(rs.getDouble("rating"));
-                movie.setPopularity(rs.getDouble("popularity"));
-                movie.setReleaseDate(rs.getString("release_date"));
-                movie.setTagline(rs.getString("tagline"));
-                
-                movies.add(movie);
+                movies.add(mapRowToMovie(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -277,5 +267,25 @@ public class MovieDAO {
             e.printStackTrace();
         }
         return "No Data Yet";
+    }
+
+    private Movie mapRowToMovie(ResultSet rs) throws SQLException {
+        Movie m = new Movie(
+                "M" + rs.getInt("id"),
+                rs.getString("title"),
+                rs.getString("genre"),
+                rs.getInt("duration_minutes") + " mins",
+                rs.getString("description"),
+                new ArrayList<>() // We will fetch shows separately if needed
+        );
+        m.setPosterPath(rs.getString("poster_path"));
+        m.setBannerPath(rs.getString("banner_path"));
+        m.setAdultPrice(rs.getDouble("adult_price"));
+        m.setKidsPrice(rs.getDouble("kids_price"));
+        m.setShowingFrom(rs.getString("showing_from"));
+        m.setShowingUntil(rs.getString("showing_until"));
+        m.setRating(rs.getDouble("rating"));
+        m.setTmdbId(rs.getInt("tmdb_id"));
+        return m;
     }
 }

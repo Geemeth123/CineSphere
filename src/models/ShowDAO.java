@@ -13,7 +13,7 @@ public class ShowDAO {
     public List<ShowTableItem> getTodayShows() {
         List<ShowTableItem> shows = new ArrayList<>();
         String sql = "SELECT s.id as show_id, m.title as movie_title, h.name as hall_name, " +
-                     "DATE_FORMAT(s.show_time, '%H:%i') as show_time, h.total_seats, " +
+                     "DATE_FORMAT(s.show_time, '%H:%i') as show_time, (SELECT COUNT(*) FROM seats WHERE hall_id = h.id AND seats.status = 'AVAILABLE') as total_seats, " +
                      "(SELECT COUNT(*) FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.show_id = s.id AND b.status != 'CANCELLED') as booked_seats, " +
                      "s.status " +
                      "FROM shows s " +
@@ -64,7 +64,7 @@ public class ShowDAO {
     public List<ShowTableItem> getUpcomingShows() {
         List<ShowTableItem> shows = new ArrayList<>();
         String sql = "SELECT s.id as show_id, m.title as movie_title, h.name as hall_name, " +
-                     "DATE_FORMAT(s.show_time, '%H:%i') as show_time, h.total_seats, " +
+                     "DATE_FORMAT(s.show_time, '%H:%i') as show_time, (SELECT COUNT(*) FROM seats WHERE hall_id = h.id AND seats.status = 'AVAILABLE') as total_seats, " +
                      "(SELECT COUNT(*) FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.show_id = s.id AND b.status != 'CANCELLED') as booked_seats, " +
                      "s.status " +
                      "FROM shows s " +
@@ -115,7 +115,7 @@ public class ShowDAO {
         Map<Integer, Movie> movieMap = new LinkedHashMap<>();
         
         String sql = "SELECT m.id as movie_id, m.title, m.genre, m.duration_minutes, m.description, " +
-                     "s.id as show_id, DATE_FORMAT(s.show_time, '%H:%i') as show_time, h.name as hall_name, h.total_seats, " +
+                     "s.id as show_id, DATE_FORMAT(s.show_time, '%H:%i') as show_time, h.name as hall_name, (SELECT COUNT(*) FROM seats WHERE hall_id = h.id AND seats.status = 'AVAILABLE') as total_seats, " +
                      "(SELECT COUNT(*) FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.show_id = s.id AND b.status != 'CANCELLED') as booked_seats " +
                      "FROM movies m " +
                      "JOIN shows s ON m.id = s.movie_id " +
@@ -162,12 +162,12 @@ public class ShowDAO {
         
         String sql = "SELECT m.id as movie_id, m.title, m.genre, m.duration_minutes, m.description, m.poster_path, m.rating, " +
                      "s.id as show_id, DATE_FORMAT(s.show_date, '%d/%m/%Y') as show_date, DATE_FORMAT(s.show_time, '%H:%i') as show_time, s.status as show_status, " +
-                     "h.name as hall_name, h.total_seats, " +
+                     "h.name as hall_name, (SELECT COUNT(*) FROM seats WHERE hall_id = h.id AND seats.status = 'AVAILABLE') as total_seats, " +
                      "(SELECT COUNT(*) FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.show_id = s.id AND b.status != 'CANCELLED') as booked_seats " +
                      "FROM movies m " +
                      "LEFT JOIN shows s ON m.id = s.movie_id " +
                      "LEFT JOIN halls h ON s.hall_id = h.id " +
-                     "WHERE m.status = 'ACTIVE' " +
+                     "WHERE m.status = 'ACTIVE' AND (s.id IS NULL OR s.status = 'SCHEDULED') " +
                      "ORDER BY m.id, s.show_date, s.show_time";
                      
         try (Connection conn = DBUtils.getConnection();
@@ -204,7 +204,6 @@ public class ShowDAO {
                     int totalSeats = rs.getInt("total_seats");
                     int bookedSeats = rs.getInt("booked_seats");
                     int availableSeats = totalSeats - bookedSeats;
-
                     // Format display time as "dd/MM HH:mm" for better UI
                     String displayTime = date.substring(0, 5) + " " + time;
                     Showtime st = new Showtime(showId, displayTime, hall, availableSeats, totalSeats);
@@ -241,17 +240,16 @@ public class ShowDAO {
 
     public boolean isHallOccupied(int hallId, String date, String start, String end) {
         String sql = "SELECT COUNT(*) FROM shows s " +
-                     "JOIN movies m ON s.movie_id = m.id " +
                      "WHERE s.hall_id = ? AND s.show_date = ? AND s.status != 'CANCELLED' " +
                      "AND ( " +
-                     "  (s.show_time <= ? AND ADDTIME(s.show_time, SEC_TO_TIME(m.duration_minutes * 60)) > ?) " +
+                     "  (STR_TO_DATE(s.show_time, '%H:%i') <= STR_TO_DATE(?, '%H:%i') " +
+                     "   AND ADDTIME(STR_TO_DATE(s.show_time, '%H:%i'), (SELECT SEC_TO_TIME(duration_minutes*60) FROM movies WHERE id=s.movie_id)) > STR_TO_DATE(?, '%H:%i')) " +
                      "  OR " +
-                     "  (s.show_time >= ? AND s.show_time < ?) " +
+                     "  (STR_TO_DATE(s.show_time, '%H:%i') >= STR_TO_DATE(?, '%H:%i') " +
+                     "   AND STR_TO_DATE(s.show_time, '%H:%i') < STR_TO_DATE(?, '%H:%i')) " +
                      ")";
-                     
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             stmt.setInt(1, hallId);
             stmt.setString(2, date);
             stmt.setString(3, start); // new start
@@ -276,7 +274,6 @@ public class ShowDAO {
         try {
             conn = DBUtils.getConnection();
             conn.setAutoCommit(false);
-
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 for (java.time.LocalDate d : dates) {
                     for (String time : times) {
@@ -288,7 +285,6 @@ public class ShowDAO {
                         stmt.addBatch();
                     }
                 }
-
                 stmt.executeBatch();
                 conn.commit();
                 return true;
@@ -340,6 +336,22 @@ public class ShowDAO {
             
             stmt.setInt(1, showId);
             return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean hasUpcomingShows(int hallId) {
+        String sql = "SELECT COUNT(*) FROM shows WHERE hall_id = ? AND show_date >= CURRENT_DATE AND status != 'CANCELLED'";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, hallId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

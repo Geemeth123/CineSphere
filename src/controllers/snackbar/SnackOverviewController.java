@@ -68,21 +68,13 @@ public class SnackOverviewController {
         lowStockTable.setItems(lowStockList);
         
         // Load sales for today
-        List<SnackSale> allSales = snackSaleDAO.getAllSales();
-        int salesToday = 0;
-        BigDecimal revenueToday = BigDecimal.ZERO;
         LocalDate today = LocalDate.now();
+        List<SnackSale> allSales = snackSaleDAO.getSalesByDateRange(today, today);
+        int salesToday = allSales.size();
+        BigDecimal revenueToday = BigDecimal.ZERO;
         
         for (SnackSale sale : allSales) {
-            if (sale.getSaleTime() != null) {
-                LocalDate saleDate = sale.getSaleTime().toLocalDateTime().toLocalDate();
-                if (saleDate.equals(today)) {
-                    salesToday++;
-                    if (sale.getTotalAmount() != null) {
-                        revenueToday = revenueToday.add(sale.getTotalAmount());
-                    }
-                }
-            }
+            revenueToday = revenueToday.add(sale.getTotalAmount() != null ? sale.getTotalAmount() : BigDecimal.ZERO);
         }
         
         totalSalesTodayLabel.setText(String.valueOf(salesToday));

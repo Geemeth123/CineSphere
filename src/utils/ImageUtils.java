@@ -39,4 +39,14 @@ public class ImageUtils {
         // Return relative path to be saved in DB
         return SNACK_IMAGE_DIR + newFilename;
     }
+
+    public static void deleteImage(String path) {
+        if (path == null || path.trim().isEmpty()) return;
+        try {
+            Path file = Paths.get(path);
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            System.err.println("Failed to delete image: " + path);
+        }
+    }
 }
