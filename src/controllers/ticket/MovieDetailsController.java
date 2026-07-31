@@ -44,6 +44,10 @@ public class MovieDetailsController {
     private Label popularityLabel;
     @FXML
     private Label overviewLabel;
+    @FXML
+    private javafx.scene.layout.VBox contentContainer;
+    @FXML
+    private javafx.scene.layout.VBox loadingOverlay;
 
     private boolean isAdminMode = false;
     private boolean isAddNewMode = false;
@@ -61,6 +65,22 @@ public class MovieDetailsController {
     @FXML
     public void initialize() {
         // Initial setup if required
+    }
+
+    private void showLoader() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisible(true);
+            loadingOverlay.setManaged(true);
+            contentContainer.setVisible(false);
+        }
+    }
+
+    private void hideLoader() {
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisible(false);
+            loadingOverlay.setManaged(false);
+            contentContainer.setVisible(true);
+        }
     }
 
     /**
@@ -92,6 +112,7 @@ public class MovieDetailsController {
         } else if (movie != null) {
             populateLocalDetails(movie);
             updateActionButtons();
+            hideLoader();
         }
     }
 
@@ -112,6 +133,7 @@ public class MovieDetailsController {
      */
     private void fetchDetailsAsync(int tmdbId, Movie fallback) {
         this.currentMovieId = tmdbId;
+        showLoader();
         new Thread(() -> {
             MovieDTO dto = TMDBUtils.getMovieDetails(tmdbId);
             this.currentFetchedDto = dto;
@@ -124,6 +146,7 @@ public class MovieDetailsController {
                     titleLabel.setText("Movie Details");
                 }
                 updateActionButtons();
+                hideLoader();
             });
         }).start();
     }

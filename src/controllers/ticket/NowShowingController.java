@@ -49,10 +49,10 @@ public class NowShowingController {
         moviesGrid.setAlignment(Pos.CENTER);
         moviesGrid.getChildren().add(loaderContainer);
         
-        // Fetch movies from local DB
+        // Fetch movies from local DB that have active showtimes
         new Thread(() -> {
-            MovieDAO dao = new MovieDAO();
-            allMovies = dao.getActiveMovies();
+            models.ShowDAO dao = new models.ShowDAO();
+            allMovies = dao.getActiveMoviesWithShowtimes();
             Platform.runLater(this::filterMovies);
         }).start();
     }

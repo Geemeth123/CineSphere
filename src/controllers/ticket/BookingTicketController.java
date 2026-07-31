@@ -42,7 +42,7 @@ public class BookingTicketController {
         // Load live movies from DB in background thread to keep UI responsive
         new Thread(() -> {
             ShowDAO dao = new ShowDAO();
-            java.util.List<Movie> activeMovies = dao.getAllActiveMoviesWithShows();
+            java.util.List<Movie> activeMovies = dao.getActiveMoviesWithShowtimes();
             
             Platform.runLater(() -> {
                 ObservableList<Movie> movies = FXCollections.observableArrayList(activeMovies);
