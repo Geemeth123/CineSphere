@@ -78,6 +78,11 @@ public class SnackManagementController {
         imageRegion.setMinSize(220, 140);
         imageRegion.setMaxSize(220, 140);
         
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(220, 160);
+        clip.setArcWidth(24);
+        clip.setArcHeight(24);
+        imageRegion.setClip(clip);
+        
         if (snack.getImagePath() != null && !snack.getImagePath().isEmpty()) {
             java.io.File file = new java.io.File(snack.getImagePath());
             if (file.exists()) {

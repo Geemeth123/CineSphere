@@ -268,6 +268,11 @@ public class SnackPOSController {
         imageRegion.setMinSize(180, 110);
         imageRegion.setMaxSize(180, 110);
         
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(180, 130);
+        clip.setArcWidth(24);
+        clip.setArcHeight(24);
+        imageRegion.setClip(clip);
+        
         if (snack.getImagePath() != null && !snack.getImagePath().isEmpty()) {
             java.io.File file = new java.io.File(snack.getImagePath());
             if (file.exists()) {
