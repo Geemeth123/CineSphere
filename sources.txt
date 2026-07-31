@@ -61,5 +61,4 @@
 "src/utils/ImageUtils.java"
 "src/utils/QRCodeUtils.java"
 "src/utils/ReceiptUtils.java"
-"src/utils/SnackReceiptGenerator.java"
 "src/utils/TMDBUtils.java"

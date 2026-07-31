@@ -21,7 +21,6 @@ import models.SnackSaleDAO;
 import models.SnackSaleItem;
 import models.BookingDAO;
 import models.BookingPOSDetails;
-import utils.SnackReceiptGenerator;
 import javafx.fxml.FXMLLoader;
 
 import java.math.BigDecimal;
