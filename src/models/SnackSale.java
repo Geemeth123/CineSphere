@@ -7,6 +7,7 @@ import java.util.List;
 public class SnackSale {
     private int id;
     private Integer bookingId;
+    private String seatNumber;
     private Integer userId;
     private BigDecimal totalAmount;
     private Timestamp saleTime;
@@ -17,9 +18,10 @@ public class SnackSale {
 
     public SnackSale() {}
 
-    public SnackSale(int id, Integer bookingId, Integer userId, BigDecimal totalAmount, Timestamp saleTime) {
+    public SnackSale(int id, Integer bookingId, String seatNumber, Integer userId, BigDecimal totalAmount, Timestamp saleTime) {
         this.id = id;
         this.bookingId = bookingId;
+        this.seatNumber = seatNumber;
         this.userId = userId;
         this.totalAmount = totalAmount;
         this.saleTime = saleTime;
@@ -30,6 +32,9 @@ public class SnackSale {
 
     public Integer getBookingId() { return bookingId; }
     public void setBookingId(Integer bookingId) { this.bookingId = bookingId; }
+
+    public String getSeatNumber() { return seatNumber; }
+    public void setSeatNumber(String seatNumber) { this.seatNumber = seatNumber; }
 
     public Integer getUserId() { return userId; }
     public void setUserId(Integer userId) { this.userId = userId; }

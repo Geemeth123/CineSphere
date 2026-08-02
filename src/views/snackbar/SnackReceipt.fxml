@@ -28,6 +28,7 @@
             <Label fx:id="dateLabel" text="Date: YYYY-MM-DD" style="-fx-font-size: 14px; -fx-text-fill: #495057;" />
             <Label fx:id="cashierLabel" text="Cashier: Staff" style="-fx-font-size: 14px; -fx-text-fill: #495057;" />
             <Label fx:id="bookingIdLabel" text="Booking ID: N/A" style="-fx-font-size: 14px; -fx-text-fill: #495057;" />
+            <Label fx:id="seatLabel" text="Seat Number: N/A" style="-fx-font-size: 14px; -fx-text-fill: #495057;" />
         </VBox>
         
         <Separator style="-fx-padding: 5 0;" />

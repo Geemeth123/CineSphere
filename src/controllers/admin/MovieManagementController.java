@@ -106,14 +106,14 @@ public class MovieManagementController {
         poster.setFitHeight(75);
         poster.setPreserveRatio(true);
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
-            String posterUrl = (movie.getPosterPath().startsWith("http") || movie.getPosterPath().startsWith("file:")) ? movie.getPosterPath() : TMDBUtils.getImageUrl(movie.getPosterPath(), "w500");
+            String posterUrl = TMDBUtils.resolveMovieImagePath(movie.getPosterPath());
             poster.setImage(new Image(posterUrl, true));
         } else if (movie.getTmdbId() > 0) {
             // Fetch poster asynchronously if not in local DB but has TMDB ID
             new Thread(() -> {
                 models.MovieDTO dto = TMDBUtils.getMovieDetails(movie.getTmdbId());
                 if (dto != null && dto.poster_path != null && !dto.poster_path.isEmpty()) {
-                    String posterUrl = (dto.poster_path.startsWith("http") || dto.poster_path.startsWith("file:")) ? dto.poster_path : TMDBUtils.getImageUrl(dto.poster_path, "w500");
+                    String posterUrl = TMDBUtils.resolveMovieImagePath(dto.poster_path);
                     javafx.application.Platform.runLater(() -> poster.setImage(new Image(posterUrl, true)));
                     
                     // Optional: update the local database so we don't have to fetch next time

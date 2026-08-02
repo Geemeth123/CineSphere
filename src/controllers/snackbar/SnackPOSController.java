@@ -57,6 +57,7 @@ public class SnackPOSController {
     @FXML private TextField discountCodeField;
     @FXML private Label discountLabel;
     @FXML private Label totalLabel;
+    @FXML private FlowPane seatsFlowPane;
 
     private SnackDAO snackDAO = new SnackDAO();
     private SnackSaleDAO saleDAO = new SnackSaleDAO();
@@ -68,6 +69,7 @@ public class SnackPOSController {
     
     private BigDecimal currentDiscountPercentage = BigDecimal.ZERO;
     private Integer currentBookingId = null;
+    private String selectedSeatNumber = null;
 
     @FXML
     public void initialize() {
@@ -111,9 +113,13 @@ public class SnackPOSController {
         bdHallLabel.setText("Hall: N/A");
         bdSeatsLabel.setText("Seats: N/A");
         bdTimeLabel.setText("Time: N/A");
+        if (seatsFlowPane != null) {
+            seatsFlowPane.getChildren().clear();
+        }
         
         currentDiscountPercentage = BigDecimal.ZERO;
         currentBookingId = null;
+        selectedSeatNumber = null;
         updateTotals();
     }
 
@@ -139,6 +145,47 @@ public class SnackPOSController {
                 
                 bookingDetailsBox.setVisible(true);
                 bookingDetailsBox.setManaged(true);
+                
+                // Populate seat toggle buttons
+                seatsFlowPane.getChildren().clear();
+                String seatsText = details.getSeatNumbers();
+                if (seatsText != null && !seatsText.equals("-")) {
+                    String[] seatsArray = seatsText.split(", ");
+                    ToggleGroup seatGroup = new ToggleGroup();
+                    
+                    for (int k = 0; k < seatsArray.length; k++) {
+                        String seat = seatsArray[k];
+                        ToggleButton seatBtn = new ToggleButton(seat);
+                        seatBtn.setToggleGroup(seatGroup);
+                        
+                        // Style seat toggle button
+                        String baseStyle = "-fx-background-color: white; -fx-border-color: #0d6efd; -fx-border-width: 1px; " +
+                                           "-fx-border-radius: 15px; -fx-background-radius: 15px; -fx-text-fill: #0d6efd; " +
+                                           "-fx-font-size: 11px; -fx-padding: 4px 12px; -fx-cursor: hand; -fx-font-weight: bold;";
+                        String selectedStyle = "-fx-background-color: #0d6efd; -fx-border-color: #0d6efd; -fx-border-width: 1px; " +
+                                               "-fx-border-radius: 15px; -fx-background-radius: 15px; -fx-text-fill: white; " +
+                                               "-fx-font-size: 11px; -fx-padding: 4px 12px; -fx-cursor: hand; -fx-font-weight: bold;";
+                        
+                        seatBtn.setStyle(baseStyle);
+                        
+                        seatBtn.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                            if (newVal) {
+                                seatBtn.setStyle(selectedStyle);
+                                selectedSeatNumber = seat;
+                            } else {
+                                seatBtn.setStyle(baseStyle);
+                            }
+                        });
+                        
+                        seatsFlowPane.getChildren().add(seatBtn);
+                        
+                        // Select the first seat by default
+                        if (k == 0) {
+                            seatBtn.setSelected(true);
+                            selectedSeatNumber = seat;
+                        }
+                    }
+                }
                 
                 if (details.getSnackDiscount().compareTo(BigDecimal.ZERO) > 0) {
                     currentDiscountPercentage = details.getSnackDiscount();
@@ -405,6 +452,17 @@ public class SnackPOSController {
             return;
         }
 
+        if ("Ticket Holder".equals(customerTypeCombo.getValue())) {
+            if (currentBookingId == null) {
+                showAlert("Error", "Please lookup a valid booking for the ticket holder customer.");
+                return;
+            }
+            if (selectedSeatNumber == null) {
+                showAlert("Error", "Please select a seat number for the ticket holder customer.");
+                return;
+            }
+        }
+
         BigDecimal subtotal = BigDecimal.ZERO;
         StringBuilder summary = new StringBuilder();
         summary.append("Order Summary:\n\n");
@@ -434,6 +492,7 @@ public class SnackPOSController {
             SnackSale sale = new SnackSale();
             sale.setTotalAmount(finalTotal);
             sale.setBookingId(currentBookingId);
+            sale.setSeatNumber(selectedSeatNumber);
             
             int userId = 1; // Default fallback
             if (controllers.MainLayoutController.getInstance() != null && controllers.MainLayoutController.getInstance().getCurrentUser() != null) {
@@ -468,6 +527,7 @@ public class SnackPOSController {
                     cartData.clear();
                     currentDiscountPercentage = BigDecimal.ZERO;
                     currentBookingId = null;
+                    selectedSeatNumber = null;
                     discountCodeField.clear();
                     customerTypeCombo.setValue("Walk-In Customer");
                     updateTotals();

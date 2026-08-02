@@ -7,8 +7,30 @@ import java.util.List;
 
 public class SnackSaleDAO {
 
+    private static boolean schemaInitialized = false;
+
+    public SnackSaleDAO() {
+        if (!schemaInitialized) {
+            initializeSchema();
+            schemaInitialized = true;
+        }
+    }
+
+    private void initializeSchema() {
+        try (Connection conn = DBUtils.getConnection();
+             Statement stmt = conn.createStatement()) {
+            try {
+                stmt.execute("ALTER TABLE snack_sales ADD COLUMN seat_number VARCHAR(10) DEFAULT NULL AFTER booking_id");
+            } catch (SQLException e) {
+                // Ignore if column already exists
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public boolean createSale(SnackSale sale, List<SnackSaleItem> items) {
-        String insertSaleQuery = "INSERT INTO snack_sales (booking_id, user_id, total_amount) VALUES (?, ?, ?)";
+        String insertSaleQuery = "INSERT INTO snack_sales (booking_id, seat_number, user_id, total_amount) VALUES (?, ?, ?, ?)";
         String insertItemQuery = "INSERT INTO snack_sale_items (snack_sale_id, snack_id, quantity, price_at_sale, discount_applied) VALUES (?, ?, ?, ?, ?)";
         String updateStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
 
@@ -25,17 +47,19 @@ public class SnackSaleDAO {
                 } else {
                     stmt.setNull(1, Types.INTEGER);
                 }
+                stmt.setString(2, sale.getSeatNumber());
                 if (sale.getUserId() != null) {
-                    stmt.setInt(2, sale.getUserId());
+                    stmt.setInt(3, sale.getUserId());
                 } else {
-                    stmt.setNull(2, Types.INTEGER);
+                    stmt.setNull(3, Types.INTEGER);
                 }
-                stmt.setBigDecimal(3, sale.getTotalAmount());
+                stmt.setBigDecimal(4, sale.getTotalAmount());
                 stmt.executeUpdate();
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         saleId = rs.getInt(1);
                         sale.setId(saleId);
+                        sale.setSaleTime(new java.sql.Timestamp(System.currentTimeMillis()));
                     }
                 }
             }
@@ -114,6 +138,7 @@ public class SnackSaleDAO {
                  SnackSale sale = new SnackSale(
                      rs.getInt("id"),
                      (Integer) rs.getObject("booking_id"),
+                     rs.getString("seat_number"),
                      (Integer) rs.getObject("user_id"),
                      rs.getBigDecimal("total_amount"),
                      rs.getTimestamp("sale_time")
@@ -139,6 +164,7 @@ public class SnackSaleDAO {
                      SnackSale sale = new SnackSale(
                          rs.getInt("id"),
                          (Integer) rs.getObject("booking_id"),
+                         rs.getString("seat_number"),
                          (Integer) rs.getObject("user_id"),
                          rs.getBigDecimal("total_amount"),
                          rs.getTimestamp("sale_time")
@@ -185,18 +211,19 @@ public class SnackSaleDAO {
         String query = "SELECT s.*, u.username as cashier_name FROM snack_sales s LEFT JOIN users u ON s.user_id = u.id WHERE DATE(s.sale_time) >= ? AND DATE(s.sale_time) <= ? ORDER BY s.sale_time DESC";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
-             
-             stmt.setDate(1, java.sql.Date.valueOf(start));
-             stmt.setDate(2, java.sql.Date.valueOf(end));
-             try (ResultSet rs = stmt.executeQuery()) {
-                 while (rs.next()) {
-                     SnackSale sale = new SnackSale(
-                         rs.getInt("id"),
-                         (Integer) rs.getObject("booking_id"),
-                         (Integer) rs.getObject("user_id"),
-                         rs.getBigDecimal("total_amount"),
-                         rs.getTimestamp("sale_time")
-                     );
+              
+              stmt.setDate(1, java.sql.Date.valueOf(start));
+              stmt.setDate(2, java.sql.Date.valueOf(end));
+              try (ResultSet rs = stmt.executeQuery()) {
+                  while (rs.next()) {
+                      SnackSale sale = new SnackSale(
+                          rs.getInt("id"),
+                          (Integer) rs.getObject("booking_id"),
+                          rs.getString("seat_number"),
+                          (Integer) rs.getObject("user_id"),
+                          rs.getBigDecimal("total_amount"),
+                          rs.getTimestamp("sale_time")
+                      );
                      sale.setCashierName(rs.getString("cashier_name"));
                      sales.add(sale);
                  }

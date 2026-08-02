@@ -157,8 +157,8 @@ public class AddMovieManuallyController {
             
             // Copy files locally
             try {
-                java.io.File posterDir = new java.io.File("movies/posters");
-                java.io.File bannerDir = new java.io.File("movies/banners");
+                java.io.File posterDir = new java.io.File("data/movies/posters");
+                java.io.File bannerDir = new java.io.File("data/movies/banners");
                 if (!posterDir.exists()) posterDir.mkdirs();
                 if (!bannerDir.exists()) bannerDir.mkdirs();
                 

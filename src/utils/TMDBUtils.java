@@ -161,4 +161,35 @@ public class TMDBUtils {
             return null;
         }
     }
+
+    public static String resolveMovieImagePath(String path) {
+        if (path == null || path.isEmpty()) {
+            return null;
+        }
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path;
+        }
+        if (path.startsWith("file:")) {
+            return path;
+        }
+        if (path.startsWith("/")) {
+            // TMDB relative path
+            return "https://image.tmdb.org/t/p/w500" + path;
+        }
+        // Relative local path
+        java.io.File file = new java.io.File(path);
+        if (file.exists()) {
+            return file.toURI().toString();
+        }
+        // Search in subfolders
+        java.io.File file2 = new java.io.File("data/movies/posters/" + path);
+        if (file2.exists()) {
+            return file2.toURI().toString();
+        }
+        java.io.File file3 = new java.io.File("data/movies/banners/" + path);
+        if (file3.exists()) {
+            return file3.toURI().toString();
+        }
+        return "file:" + path;
+    }
 }
