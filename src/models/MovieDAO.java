@@ -88,7 +88,7 @@ public class MovieDAO {
         }
         
         try {
-            java.io.File dir = new java.io.File("movies/" + subfolder);
+            java.io.File dir = new java.io.File("data/movies/" + subfolder);
             if (!dir.exists()) {
                 dir.mkdirs();
             }

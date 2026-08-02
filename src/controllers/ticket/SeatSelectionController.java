@@ -30,6 +30,7 @@ public class SeatSelectionController {
     private int childCount = 0;
     private double adultPrice = 350.0;
     private double childPrice = 200.0;
+    private double discountPercentage = 0.0;
     
     private List<String> selectedSeats = new ArrayList<>();
     
@@ -60,6 +61,22 @@ public class SeatSelectionController {
                 }
             }
         } catch (Exception e) {}
+
+        // Query active show/movie discounts
+        try (java.sql.Connection conn = utils.DBUtils.getConnection();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT MAX(discount_percentage) as discount FROM discounts WHERE status = 'ACTIVE' AND ((target_type = 'SHOW' AND target_id = ?) OR (target_type = 'MOVIE' AND target_id = (SELECT movie_id FROM shows WHERE id = ?)))")) {
+            int sId = Integer.parseInt(showId.replace("SH-", ""));
+            stmt.setInt(1, sId);
+            stmt.setInt(2, sId);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    this.discountPercentage = rs.getDouble("discount");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         
         generateSeatGrid();
         updateSummary();
@@ -213,8 +230,14 @@ public class SeatSelectionController {
         adultCountLabel.setText(String.valueOf(adultCount));
         childCountLabel.setText(String.valueOf(childCount));
 
-        double total = (adultCount * adultPrice) + (childCount * childPrice);
-        totalAmountLabel.setText(String.format("$%.2f", total));
+        double subtotal = (adultCount * adultPrice) + (childCount * childPrice);
+        if (discountPercentage > 0) {
+            double discountAmt = subtotal * (discountPercentage / 100.0);
+            double finalTotal = subtotal - discountAmt;
+            totalAmountLabel.setText(String.format("$%.2f (%.0f%% Off)", finalTotal, discountPercentage));
+        } else {
+            totalAmountLabel.setText(String.format("$%.2f", subtotal));
+        }
 
         // Enable proceed if at least 1 seat selected AND ticket count matches seat count
         if (!selectedSeats.isEmpty() && getTotalTickets() == selectedSeats.size()) {
@@ -249,17 +272,27 @@ public class SeatSelectionController {
 
     @FXML
     public void handleProceed() {
-        double total = (adultCount * adultPrice) + (childCount * childPrice);
+        double subtotal = (adultCount * adultPrice) + (childCount * childPrice);
+        double discountAmt = subtotal * (discountPercentage / 100.0);
+        double total = subtotal - discountAmt;
         String formattedTotal = String.format("$%.2f", total);
         
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Booking");
         alert.setHeaderText("Please confirm the booking details:");
+        
+        String discountText = "";
+        if (discountPercentage > 0) {
+            discountText = "\nSubtotal: " + String.format("$%.2f", subtotal) +
+                           "\nDiscount (" + String.format("%.0f", discountPercentage) + "%): -" + String.format("$%.2f", discountAmt);
+        }
+        
         alert.setContentText(
             "Movie: " + movieTitle + "\n" +
             "Showtime: " + showtimeDetails + "\n" +
             "Seats: " + String.join(", ", selectedSeats) + "\n" +
-            "Adults: " + adultCount + ", Children: " + childCount + "\n" +
+            "Adults: " + adultCount + ", Children: " + childCount + 
+            discountText + "\n" +
             "Total Amount: " + formattedTotal
         );
 
@@ -291,7 +324,9 @@ public class SeatSelectionController {
                             movieTitle,
                             showtimeDetails,
                             String.join(", ", selectedSeats),
-                            formattedTotal
+                            subtotal,
+                            discountAmt,
+                            total
                         );
                         
                         StackPane contentArea = (StackPane) proceedBtn.getScene().lookup("#contentArea");

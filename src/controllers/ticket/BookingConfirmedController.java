@@ -12,15 +12,19 @@ public class BookingConfirmedController {
     @FXML private Label movieTitleLabel;
     @FXML private Label showtimeLabel;
     @FXML private Label seatsLabel;
+    @FXML private Label subtotalLabel;
+    @FXML private Label discountLabel;
     @FXML private Label totalPaidLabel;
     @FXML private javafx.scene.layout.VBox qrCodeContainer;
 
-    public void setReceiptData(String bookingId, String movieTitle, String showtime, String seats, String totalPaid) {
+    public void setReceiptData(String bookingId, String movieTitle, String showtime, String seats, double subtotal, double discount, double totalPaid) {
         bookingIdLabel.setText("Booking ID: " + bookingId);
         movieTitleLabel.setText(movieTitle);
         showtimeLabel.setText(showtime);
         seatsLabel.setText("Seats: " + seats);
-        totalPaidLabel.setText("Total Paid: " + totalPaid);
+        subtotalLabel.setText(String.format("$%.2f", subtotal));
+        discountLabel.setText(String.format("-$%.2f", discount));
+        totalPaidLabel.setText(String.format("$%.2f", totalPaid));
 
         // Generate QR Code data string format: BK-1|The Dark Knight|14:00 - Hall A|Seats: A1, A2
         String qrData = bookingId + "|" + movieTitle + "|" + showtime + "|" + seats;

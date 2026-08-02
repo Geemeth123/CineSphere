@@ -29,7 +29,24 @@
                 <Region prefHeight="10" />
                 
                 <Label fx:id="seatsLabel" text="Seats: -" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #212529;" />
-                <Label fx:id="totalPaidLabel" text="Total Paid: \$0.00" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0d6efd;" />
+                <VBox spacing="5" style="-fx-padding: 10 0 0 0;">
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Subtotal: " style="-fx-text-fill: #6c757d; -fx-font-size: 13px;" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="subtotalLabel" text="\$0.00" style="-fx-text-fill: #495057; -fx-font-size: 13px;" />
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Discount: " style="-fx-text-fill: #198754; -fx-font-size: 13px;" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="discountLabel" text="-\$0.00" style="-fx-text-fill: #198754; -fx-font-size: 13px;" />
+                    </HBox>
+                    <Separator style="-fx-padding: 5 0;" />
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Total Paid: " style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #212529;" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="totalPaidLabel" text="\$0.00" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #0d6efd;" />
+                    </HBox>
+                </VBox>
             </VBox>
             
             <!-- QR Placeholder -->

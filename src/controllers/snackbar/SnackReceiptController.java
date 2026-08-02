@@ -19,6 +19,7 @@ public class SnackReceiptController {
     @FXML private Label dateLabel;
     @FXML private Label cashierLabel;
     @FXML private Label bookingIdLabel;
+    @FXML private Label seatLabel;
     @FXML private VBox itemsContainer;
     @FXML private Label subtotalLabel;
     @FXML private Label discountLabel;
@@ -40,9 +41,20 @@ public class SnackReceiptController {
             bookingIdLabel.setText("Booking ID: BK-" + sale.getBookingId());
             bookingIdLabel.setVisible(true);
             bookingIdLabel.setManaged(true);
+            
+            if (sale.getSeatNumber() != null && !sale.getSeatNumber().isEmpty()) {
+                seatLabel.setText("Seat Number: " + sale.getSeatNumber());
+                seatLabel.setVisible(true);
+                seatLabel.setManaged(true);
+            } else {
+                seatLabel.setVisible(false);
+                seatLabel.setManaged(false);
+            }
         } else {
             bookingIdLabel.setVisible(false);
             bookingIdLabel.setManaged(false);
+            seatLabel.setVisible(false);
+            seatLabel.setManaged(false);
         }
 
         // Populate items

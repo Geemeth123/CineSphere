@@ -56,21 +56,27 @@ logs/
 *.bak
 *~
 
-download_jars.ps1
 built.bat
 
 lib/
 
 # Keep data directory structure but ignore contents
 data/*
-!data/movie/
-!data/snack/
+!data/movies/
+!data/snacks/
 
-data/movie/*
-!data/movie/.gitkeep
+data/movies/*
+!data/movies/banners/
+!data/movies/posters/
 
-data/snack/*
-!data/snack/.gitkeep
+data/movies/banners/*
+!data/movies/banners/.gitkeep
+
+data/movies/posters/*
+!data/movies/posters/.gitkeep
+
+data/snacks/*
+!data/snacks/.gitkeep
 
 receipts/*
 !receipts/.gitkeep

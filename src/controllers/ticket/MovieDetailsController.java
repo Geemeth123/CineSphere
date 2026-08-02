@@ -181,7 +181,7 @@ public class MovieDetailsController {
         }
 
         if (movie.getBannerPath() != null && !movie.getBannerPath().isEmpty()) {
-            String bannerUrl = movie.getBannerPath().startsWith("http") ? movie.getBannerPath() : (movie.getBannerPath().startsWith("file:") ? movie.getBannerPath() : "file:" + movie.getBannerPath());
+            String bannerUrl = TMDBUtils.resolveMovieImagePath(movie.getBannerPath());
             try {
                 heroBanner.setStyle("-fx-background-image: url('" + bannerUrl + "'); -fx-background-size: cover; -fx-background-position: center;");
             } catch (Exception e) {
@@ -190,7 +190,7 @@ public class MovieDetailsController {
         }
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
-            String posterUrl = movie.getPosterPath().startsWith("http") ? movie.getPosterPath() : (movie.getPosterPath().startsWith("file:") ? movie.getPosterPath() : "file:" + movie.getPosterPath());
+            String posterUrl = TMDBUtils.resolveMovieImagePath(movie.getPosterPath());
             try {
                 posterImage.setImage(new Image(posterUrl, true));
             } catch (Exception e) {
