@@ -10,7 +10,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.print.PrinterJob;
 import javafx.stage.FileChooser;
 import models.SnackSale;
 import models.SnackSaleDAO;
@@ -321,20 +320,6 @@ public class SnackBillsController {
                 alert.showAndWait();
             } catch (Exception e) {
                 e.printStackTrace();
-            }
-        }
-    }
-
-    @FXML
-    public void handlePrintReport() {
-        PrinterJob job = PrinterJob.createPrinterJob();
-        if (job != null) {
-            boolean proceed = job.showPrintDialog(salesTable.getScene().getWindow());
-            if (proceed) {
-                boolean success = job.printPage(salesTable);
-                if (success) {
-                    job.endJob();
-                }
             }
         }
     }

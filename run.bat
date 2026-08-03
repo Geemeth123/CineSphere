@@ -1,3 +1,3 @@
 @echo off
 echo Running CineSphere...
-java --enable-native-access=ALL-UNNAMED -Djava.library.path=lib/javafx --module-path lib/javafx --add-modules javafx.controls,javafx.fxml -cp "bin;lib\javafx\*;lib\mysqlconnector\*;lib\atlantafx\*;lib\gson\*;lib\zxing\*" Main
+java --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -Djava.library.path="lib/javafx" --module-path "lib/javafx" --add-modules javafx.controls,javafx.fxml -cp "bin;lib\javafx\*;lib\mysqlconnector\*;lib\atlantafx\*;lib\gson\*;lib\zxing\*" Main

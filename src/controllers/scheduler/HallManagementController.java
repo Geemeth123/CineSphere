@@ -196,6 +196,16 @@ public class HallManagementController implements Initializable {
     }
 
     private void handleDelete(Hall hall) {
+        ShowDAO showDAO = new ShowDAO();
+        if (showDAO.hasActiveShowsForHall(hall.getId())) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Cannot Delete Hall");
+            alert.setHeaderText("Scheduled Movies Detected: " + hall.getName());
+            alert.setContentText("This hall cannot be deleted because a movie is currently scheduled to show in it. Please remove or cancel all planned shows for this hall first before deleting it.");
+            alert.showAndWait();
+            return;
+        }
+
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Deletion");
         alert.setHeaderText("Delete Hall: " + hall.getName());
@@ -206,7 +216,7 @@ public class HallManagementController implements Initializable {
             if (hallDAO.deleteHall(hall.getId())) {
                 loadData();
             } else {
-                Alert err = new Alert(Alert.AlertType.ERROR, "Failed to delete hall. It may have existing shows.");
+                Alert err = new Alert(Alert.AlertType.ERROR, "Failed to delete hall. It may have existing shows or dependencies.");
                 err.showAndWait();
             }
         }

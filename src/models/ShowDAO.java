@@ -386,6 +386,22 @@ public class ShowDAO {
         return false;
     }
 
+    public boolean hasActiveShowsForHall(int hallId) {
+        String sql = "SELECT COUNT(*) FROM shows WHERE hall_id = ? AND status != 'CANCELLED'";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, hallId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public List<Showtime> getShowsForMovie(int movieId) {
         List<Showtime> showtimes = new ArrayList<>();
         String sql = "SELECT s.id as show_id, DATE_FORMAT(s.show_date, '%d/%m/%Y') as show_date, DATE_FORMAT(s.show_time, '%H:%i') as show_time, s.status as show_status, " +
