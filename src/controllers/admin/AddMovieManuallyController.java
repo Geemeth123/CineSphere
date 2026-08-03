@@ -24,7 +24,6 @@ public class AddMovieManuallyController {
     @FXML private ComboBox<String> genreComboBox;
     @FXML private TextField durationField;
     @FXML private TextField ratingField;
-    @FXML private TextField popularityField;
     @FXML private TextField releaseDateField;
     @FXML private TextArea synopsisArea;
     
@@ -99,7 +98,6 @@ public class AddMovieManuallyController {
         String duration = durationField != null ? durationField.getText().trim() : "";
         String synopsis = synopsisArea != null ? synopsisArea.getText().trim() : "";
         String ratingStr = ratingField != null && !ratingField.getText().trim().isEmpty() ? ratingField.getText().trim() : "0.0";
-        String popularityStr = popularityField != null && !popularityField.getText().trim().isEmpty() ? popularityField.getText().trim() : "0.0";
         
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String releaseDate = releaseDateField != null && !releaseDateField.getText().trim().isEmpty() ? releaseDateField.getText().trim() : "";
@@ -124,7 +122,6 @@ public class AddMovieManuallyController {
             double adultPrice = Double.parseDouble(adultPriceStr);
             double kidsPrice = Double.parseDouble(kidsPriceStr);
             double rating = Double.parseDouble(ratingStr);
-            double popularity = Double.parseDouble(popularityStr);
 
             if (durationInt < 0 || adultPrice < 0 || kidsPrice < 0) {
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Duration and prices cannot be negative.");
@@ -182,7 +179,6 @@ public class AddMovieManuallyController {
             movie.setPosterPath(posterPath);
             movie.setBannerPath(bannerPath);
             movie.setRating(rating);
-            movie.setPopularity(popularity);
             movie.setReleaseDate(releaseDate);
             movie.setTagline(tagline);
             movie.setAdultPrice(adultPrice);

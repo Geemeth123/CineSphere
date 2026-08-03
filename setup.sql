@@ -133,6 +133,7 @@ CREATE TABLE IF NOT EXISTS snacks (
 CREATE TABLE IF NOT EXISTS snack_sales (
     id INT AUTO_INCREMENT PRIMARY KEY,
     booking_id INT DEFAULT NULL,
+    seat_number VARCHAR(10) DEFAULT NULL,
     user_id INT DEFAULT NULL,
     total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     sale_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -237,18 +238,4 @@ CALL generate_hall_seats(1, 8, 10);
 CALL generate_hall_seats(2, 6, 10);
 CALL generate_hall_seats(3, 10, 10);
 
--- 19. Initial Active Movies
-INSERT INTO movies (title, description, duration_minutes, genre, adult_price, kids_price, rating, release_date, showing_from, showing_until, tmdb_id, poster_path, banner_path, status) VALUES
-('Inside Out 2', 'Riley is undergoing a sudden demolition to make room for new Emotions!', 96, 'Animation', 400.00, 250.00, 7.7, '2024-06-11', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 1022789, null, null, 'ACTIVE'),
-('Deadpool & Wolverine', 'Wade Wilson toils away in civilian life before a mission forces him back into action.', 127, 'Action', 500.00, 300.00, 8.0, '2024-07-24', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 533535, null, null, 'ACTIVE'),
-('Despicable Me 4', 'Gru and Lucy and their girls welcome Gru Jr., who is intent on tormenting his dad.', 94, 'Animation', 350.00, 200.00, 7.4, '2024-06-20', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 519182, null, null, 'ACTIVE'),
-('The Dark Knight', 'Batman must accept one of the greatest tests of his ability to fight injustice.', 152, 'Action', 350.00, 200.00, 9.0, '2008-07-18', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), null, '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', '/dqK9Hag1054tghRQSqLSfrkvQnA.jpg', 'ACTIVE');
 
--- 20. Initial Show Schedules for Today
-INSERT INTO shows (movie_id, hall_id, show_date, show_time, status) VALUES
-(1, 1, CURDATE(), '10:00:00', 'SCHEDULED'),
-(1, 1, CURDATE(), '14:00:00', 'SCHEDULED'),
-(2, 2, CURDATE(), '13:00:00', 'SCHEDULED'),
-(2, 2, CURDATE(), '19:00:00', 'SCHEDULED'),
-(3, 3, CURDATE(), '11:00:00', 'SCHEDULED'),
-(4, 1, CURDATE(), '18:00:00', 'SCHEDULED');

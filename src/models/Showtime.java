@@ -23,10 +23,14 @@ public class Showtime {
     
     private String rawDate;
     private String rawTime;
+    private String status;
     
     public String getRawDate() { return rawDate; }
     public void setRawDate(String rawDate) { this.rawDate = rawDate; }
     
     public String getRawTime() { return rawTime; }
     public void setRawTime(String rawTime) { this.rawTime = rawTime; }
+    
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

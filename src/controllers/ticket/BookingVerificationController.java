@@ -17,9 +17,12 @@ public class BookingVerificationController {
     @FXML private Label movieTitleLabel;
     @FXML private Label showtimeLabel;
     @FXML private Label seatsLabel;
+    @FXML private Label subtotalLabel;
+    @FXML private Label discountLabel;
     @FXML private Label totalPaidLabel;
     @FXML private Label ticketBadgeLabel;
     @FXML private javafx.scene.layout.VBox qrCodeContainer;
+    @FXML private javafx.scene.layout.VBox receiptCard;
     
     @FXML private Label currentStatusLabel;
     @FXML private Label systemNotesLabel;
@@ -36,13 +39,57 @@ public class BookingVerificationController {
         movieTitleLabel.setText(item.getMovieTitle());
         showtimeLabel.setText(item.getDate() + " - " + item.getHall());
         seatsLabel.setText("Seats: " + item.getSeats());
-        totalPaidLabel.setText(String.format("Total Paid: $%.2f", item.getAmount()));
+        totalPaidLabel.setText(String.format("$%.2f", item.getAmount()));
         
         ticketBadgeLabel.setText(item.getStatus());
         currentStatusLabel.setText(item.getStatus());
 
-        // Generate QR Code data string format: BK-1|The Dark Knight|14:00 - Hall A|Seats: A1, A2
-        String qrData = item.getBookingId() + "|" + item.getMovieTitle() + "|" + item.getDate() + " - " + item.getHall() + "|" + item.getSeats();
+        double subtotal = item.getAmount();
+        double discount = 0.0;
+        
+        try (java.sql.Connection conn = utils.DBUtils.getConnection();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT b.adult_count, b.kids_count, b.total_amount, m.adult_price, m.kids_price " +
+                 "FROM bookings b " +
+                 "JOIN shows s ON b.show_id = s.id " +
+                 "JOIN movies m ON s.movie_id = m.id " +
+                 "WHERE b.id = ?")) {
+            int bId = Integer.parseInt(item.getBookingId().replace("BK-", ""));
+            stmt.setInt(1, bId);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int ac = rs.getInt("adult_count");
+                    int kc = rs.getInt("kids_count");
+                    double ta = rs.getDouble("total_amount");
+                    double ap = rs.getDouble("adult_price");
+                    double kp = rs.getDouble("kids_price");
+                    
+                    subtotal = (ac * ap) + (kc * kp);
+                    discount = subtotal - ta;
+                    if (discount < 0) discount = 0.0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        if (subtotalLabel != null) {
+            subtotalLabel.setText(String.format("$%.2f", subtotal));
+        }
+        if (discountLabel != null) {
+            discountLabel.setText(String.format("-$%.2f", discount));
+        }
+
+        // Generate QR Code with complete detailed lines (not minimum way)
+        String qrData = "CineSphere Ticket\n" +
+                        "Booking ID: " + item.getBookingId() + "\n" +
+                        "Movie: " + item.getMovieTitle() + "\n" +
+                        "Showtime: " + item.getDate() + " - " + item.getHall() + "\n" +
+                        "Seats: " + item.getSeats() + "\n" +
+                        "Subtotal: " + String.format("$%.2f", subtotal) + "\n" +
+                        "Discount: " + String.format("-$%.2f", discount) + "\n" +
+                        "Total Paid: " + String.format("$%.2f", item.getAmount());
+                        
         javafx.scene.image.Image qrImg = utils.QRCodeUtils.generateQRCodeImage(qrData, 180, 180);
         if (qrImg != null) {
             javafx.scene.image.ImageView imgView = new javafx.scene.image.ImageView(qrImg);
@@ -133,8 +180,7 @@ public class BookingVerificationController {
 
     @FXML
     public void handleDownloadReceipt() {
-        if (currentItem != null) {
-            javafx.scene.Node receiptCard = bookingIdLabel.getParent(); // The VBox receipt-card is the parent
+        if (currentItem != null && receiptCard != null) {
             utils.ReceiptUtils.downloadReceiptAsImage(receiptCard, bookingIdLabel.getScene().getWindow(), "Receipt_" + currentItem.getBookingId());
         }
     }

@@ -35,13 +35,16 @@ public class ManageMovieSchedulesController {
     private void loadData() {
         schedulesGrid.getChildren().clear();
         
-        if (movie.getShowtimes() == null || movie.getShowtimes().isEmpty()) {
+        int movieId = Integer.parseInt(movie.getId().replace("M", ""));
+        java.util.List<Showtime> showtimes = showDAO.getShowsForMovie(movieId);
+        
+        if (showtimes == null || showtimes.isEmpty()) {
             VBox emptyState = new VBox();
             emptyState.setAlignment(Pos.CENTER);
             emptyState.setPadding(new Insets(100, 0, 0, 0));
             emptyState.prefWidthProperty().bind(schedulesGrid.widthProperty());
             
-            Label noShows = new Label("No active schedules for this movie.");
+            Label noShows = new Label("No schedules for this movie.");
             noShows.setStyle("-fx-font-size: 18px; -fx-text-fill: #94a3b8;");
             emptyState.getChildren().add(noShows);
             
@@ -49,7 +52,7 @@ public class ManageMovieSchedulesController {
             return;
         }
 
-        for (Showtime st : movie.getShowtimes()) {
+        for (Showtime st : showtimes) {
             VBox card = createScheduleCard(st);
             schedulesGrid.getChildren().add(card);
         }
@@ -87,13 +90,35 @@ public class ManageMovieSchedulesController {
         Region vSpacer = new Region();
         VBox.setVgrow(vSpacer, Priority.ALWAYS);
         
-        // Action Button
-        Button cancelBtn = new Button("Cancel Show");
-        cancelBtn.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #ef4444; -fx-font-weight: bold; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10; -fx-cursor: hand;");
-        cancelBtn.setMaxWidth(Double.MAX_VALUE);
-        cancelBtn.setOnAction(e -> handleCancelShow(st));
+        // Check show status
+        boolean isCancelled = "CANCELLED".equalsIgnoreCase(st.getStatus());
+        boolean isCompleted = "COMPLETED".equalsIgnoreCase(st.getStatus());
         
-        card.getChildren().addAll(header, details, vSpacer, cancelBtn);
+        boolean isPast = false;
+        try {
+            java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            java.time.LocalDateTime showDateTime = java.time.LocalDateTime.parse(st.getRawDate() + " " + st.getRawTime(), dtf);
+            isPast = showDateTime.isBefore(java.time.LocalDateTime.now());
+        } catch (Exception e) {}
+        
+        if (isCancelled) {
+            Label statusLbl = new Label("Cancelled");
+            statusLbl.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold; -fx-font-size: 14px; -fx-alignment: center;");
+            statusLbl.setMaxWidth(Double.MAX_VALUE);
+            card.getChildren().addAll(header, details, vSpacer, statusLbl);
+        } else if (isCompleted || isPast) {
+            Label statusLbl = new Label("Completed");
+            statusLbl.setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold; -fx-font-size: 14px; -fx-alignment: center;");
+            statusLbl.setMaxWidth(Double.MAX_VALUE);
+            card.getChildren().addAll(header, details, vSpacer, statusLbl);
+        } else {
+            Button cancelBtn = new Button("Cancel Show");
+            cancelBtn.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #ef4444; -fx-font-weight: bold; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10; -fx-cursor: hand;");
+            cancelBtn.setMaxWidth(Double.MAX_VALUE);
+            cancelBtn.setOnAction(e -> handleCancelShow(st));
+            card.getChildren().addAll(header, details, vSpacer, cancelBtn);
+        }
+        
         return card;
     }
 

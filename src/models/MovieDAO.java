@@ -132,7 +132,7 @@ public class MovieDAO {
             localBannerPath = dto.backdrop_path;
         }
 
-        String sql = "INSERT INTO movies (title, description, duration_minutes, genre, tmdb_id, poster_path, banner_path, status, adult_price, kids_price) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', 0, 0)";
+        String sql = "INSERT INTO movies (title, description, duration_minutes, genre, tmdb_id, poster_path, banner_path, status, adult_price, kids_price, rating) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', 0, 0, ?)";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             
@@ -151,6 +151,7 @@ public class MovieDAO {
             stmt.setInt(5, dto.id);
             stmt.setString(6, localPosterPath);
             stmt.setString(7, localBannerPath);
+            stmt.setDouble(8, dto.vote_average);
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
@@ -161,6 +162,7 @@ public class MovieDAO {
                         m.setTmdbId(dto.id);
                         m.setPosterPath(localPosterPath);
                         m.setBannerPath(localBannerPath);
+                        m.setRating(dto.vote_average);
                         return m;
                     }
                 }
@@ -172,7 +174,7 @@ public class MovieDAO {
     }
 
     public boolean addManualMovie(Movie movie) {
-        String sql = "INSERT INTO movies (title, description, duration_minutes, genre, poster_path, banner_path, status, adult_price, kids_price, showing_from, showing_until) VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?)";
+        String sql = "INSERT INTO movies (title, description, duration_minutes, genre, poster_path, banner_path, status, adult_price, kids_price, showing_from, showing_until, rating) VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?)";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
@@ -186,6 +188,7 @@ public class MovieDAO {
             stmt.setDouble(8, movie.getKidsPrice());
             stmt.setString(9, movie.getShowingFrom());
             stmt.setString(10, movie.getShowingUntil());
+            stmt.setDouble(11, movie.getRating());
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException | NumberFormatException e) {

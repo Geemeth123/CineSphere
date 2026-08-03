@@ -59,7 +59,6 @@ public class Movie {
     private double adultPrice;
     private double kidsPrice;
     private double rating;
-    private double popularity;
     private String releaseDate;
     private String tagline;
 
@@ -77,9 +76,6 @@ public class Movie {
 
     public double getRating() { return rating; }
     public void setRating(double rating) { this.rating = rating; }
-
-    public double getPopularity() { return popularity; }
-    public void setPopularity(double popularity) { this.popularity = popularity; }
 
     public String getReleaseDate() { return releaseDate; }
     public void setReleaseDate(String releaseDate) { this.releaseDate = releaseDate; }
