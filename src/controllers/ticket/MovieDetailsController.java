@@ -42,7 +42,7 @@ public class MovieDetailsController {
     @FXML
     private Label durationLabel;
     @FXML
-    private Label popularityLabel;
+    private Label statusLabel;
     @FXML
     private Label overviewLabel;
     @FXML
@@ -108,10 +108,12 @@ public class MovieDetailsController {
      */
     public void setLocalMovie(Movie movie) {
         this.localMovie = movie;
+        if (movie != null) {
+            populateLocalDetails(movie);
+        }
         if (movie != null && movie.getTmdbId() > 0) {
             fetchDetailsAsync(movie.getTmdbId(), movie);
         } else if (movie != null) {
-            populateLocalDetails(movie);
             updateActionButtons();
             hideLoader();
         }
@@ -134,7 +136,9 @@ public class MovieDetailsController {
      */
     private void fetchDetailsAsync(int tmdbId, Movie fallback) {
         this.currentMovieId = tmdbId;
-        showLoader();
+        if (fallback == null) {
+            showLoader();
+        }
         new Thread(() -> {
             MovieDTO dto = TMDBUtils.getMovieDetails(tmdbId);
             this.currentFetchedDto = dto;
@@ -170,7 +174,11 @@ public class MovieDetailsController {
 
         languageLabel.setText("EN");
         durationLabel.setText("⏱ " + movie.getRuntime());
-        popularityLabel.setText("Popularity: " + movie.getPopularity() + " • Active Theater Showing");
+        if (isAddNewMode) {
+            statusLabel.setText("Released");
+        } else {
+            statusLabel.setText("Active Theater Showing");
+        }
         overviewLabel.setText(movie.getDescription());
 
         genresBox.getChildren().clear();
@@ -274,16 +282,29 @@ public class MovieDetailsController {
 
         titleLabel.setText(movie.title);
         taglineLabel.setText(movie.tagline != null && !movie.tagline.isEmpty() ? "\"" + movie.tagline + "\"" : "");
-        ratingLabel.setText(String.format("⭐ %.1f", movie.vote_average));
+
+        if (localMovie != null && localMovie.getRating() > 0) {
+            ratingLabel.setText(String.format("⭐ %.1f", localMovie.getRating()));
+        } else {
+            ratingLabel.setText(String.format("⭐ %.1f", movie.vote_average));
+        }
 
         if (movie.release_date != null && movie.release_date.length() >= 4) {
             yearLabel.setText(movie.release_date.substring(0, 4));
+        } else if (localMovie != null && localMovie.getReleaseDate() != null && localMovie.getReleaseDate().length() >= 4) {
+            yearLabel.setText(localMovie.getReleaseDate().substring(0, 4));
         }
 
         languageLabel.setText(movie.original_language != null ? movie.original_language.toUpperCase() : "EN");
         durationLabel.setText("⏱ " + movie.runtime + " mins");
-        popularityLabel.setText("Popularity: " + movie.popularity + " • Released");
-        overviewLabel.setText(movie.overview);
+        
+        if (isAddNewMode) {
+            statusLabel.setText("Released");
+        } else {
+            statusLabel.setText("Active Theater Showing");
+        }
+        
+        overviewLabel.setText(movie.overview != null && !movie.overview.isEmpty() ? movie.overview : (localMovie != null ? localMovie.getDescription() : ""));
 
         genresBox.getChildren().clear();
         if (movie.genres != null) {
@@ -292,19 +313,48 @@ public class MovieDetailsController {
                 gLabel.getStyleClass().add("genre-badge");
                 genresBox.getChildren().add(gLabel);
             }
+        } else if (localMovie != null && localMovie.getGenre() != null) {
+            Label gLabel = new Label(localMovie.getGenre());
+            gLabel.getStyleClass().add("genre-badge");
+            genresBox.getChildren().add(gLabel);
         }
 
-        if (movie.backdrop_path != null) {
+        // Prefer local image paths
+        String localBanner = localMovie != null ? localMovie.getBannerPath() : null;
+        if (localBanner != null && !localBanner.isEmpty()) {
+            String bannerUrl = TMDBUtils.resolveMovieImagePath(localBanner);
+            try {
+                heroBanner.setStyle("-fx-background-image: url('" + bannerUrl + "'); -fx-background-size: cover; -fx-background-position: center 25%;");
+            } catch (Exception e) {
+                System.err.println("Failed to set hero banner background: " + e.getMessage());
+            }
+        } else if (movie.backdrop_path != null) {
             String imageUrl = movie.backdrop_path.startsWith("http") ? movie.backdrop_path : TMDBUtils.getImageUrl(movie.backdrop_path, "w1280");
-            heroBanner.setStyle("-fx-background-image: url('" + imageUrl + "'); "
-                    + "-fx-background-size: cover; "
-                    + "-fx-background-position: center 25%;");
+            try {
+                heroBanner.setStyle("-fx-background-image: url('" + imageUrl + "'); "
+                        + "-fx-background-size: cover; "
+                        + "-fx-background-position: center 25%;");
+            } catch (Exception e) {
+                System.err.println("Failed to set hero banner background: " + e.getMessage());
+            }
         }
 
-        if (movie.poster_path != null) {
+        String localPoster = localMovie != null ? localMovie.getPosterPath() : null;
+        if (localPoster != null && !localPoster.isEmpty()) {
+            String posterUrl = TMDBUtils.resolveMovieImagePath(localPoster);
+            try {
+                posterImage.setImage(new Image(posterUrl, true));
+            } catch (Exception e) {
+                System.err.println("Failed to load poster image: " + e.getMessage());
+            }
+        } else if (movie.poster_path != null) {
             String posterUrl = movie.poster_path.startsWith("http") ? movie.poster_path : TMDBUtils.getImageUrl(movie.poster_path, "w500");
-            Image poster = new Image(posterUrl, true);
-            posterImage.setImage(poster);
+            try {
+                Image poster = new Image(posterUrl, true);
+                posterImage.setImage(poster);
+            } catch (Exception e) {
+                System.err.println("Failed to load poster image: " + e.getMessage());
+            }
         }
     }
 
@@ -340,10 +390,21 @@ public class MovieDetailsController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/ticket/BookingTicket.fxml"));
             Parent root = loader.load();
-            StackPane contentArea = (StackPane) titleLabel.getScene().lookup("#contentArea");
-            if (contentArea != null) {
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(root);
+            
+            BookingTicketController controller = loader.getController();
+            if (localMovie != null) {
+                controller.setPreselectedMovie(localMovie);
+            }
+            
+            if (controllers.MainLayoutController.getInstance() != null) {
+                controllers.MainLayoutController.getInstance().selectNavButtonByTitle("Booking Ticket");
+                controllers.MainLayoutController.getInstance().loadPageDirectly(root);
+            } else {
+                StackPane contentArea = (StackPane) titleLabel.getScene().lookup("#contentArea");
+                if (contentArea != null) {
+                    contentArea.getChildren().clear();
+                    contentArea.getChildren().add(root);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

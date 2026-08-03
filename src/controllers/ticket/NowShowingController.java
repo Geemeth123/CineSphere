@@ -95,32 +95,8 @@ public class NowShowingController {
         VBox card = new VBox();
         card.getStyleClass().add("movie-grid-card");
         card.setPrefWidth(350);
-        card.setSpacing(0); // Set spacing to 0 to prevent gap between image and content
-        card.setPadding(Insets.EMPTY);
-
-        // Poster image region at the top
-        Region imageRegion = new Region();
-        imageRegion.setPrefSize(350, 220);
-        imageRegion.setMinSize(350, 220);
-        imageRegion.setMaxSize(350, 220);
-
-        // Clip the imageRegion top corners (using 12px radius)
-        Rectangle clip = new Rectangle(350, 220);
-        clip.setArcWidth(24); // 24 = 12 * 2 diameter for arc
-        clip.setArcHeight(24);
-        imageRegion.setClip(clip);
-
-        // Resolve image URL using the new TMDBUtils helper
-        String posterUrl = TMDBUtils.resolveMovieImagePath(movie.getPosterPath());
-        if (posterUrl != null && !posterUrl.isEmpty()) {
-            imageRegion.setStyle("-fx-background-image: url('" + posterUrl + "'); -fx-background-size: cover; -fx-background-position: center; -fx-background-radius: 12 12 0 0; -fx-border-radius: 12 12 0 0;");
-        } else {
-            imageRegion.setStyle("-fx-background-color: #eeeeee; -fx-background-radius: 12 12 0 0; -fx-border-radius: 12 12 0 0;");
-        }
-
-        // Details Container
-        VBox detailsBox = new VBox(15);
-        detailsBox.setPadding(new Insets(20));
+        card.setSpacing(15);
+        card.setPadding(new Insets(20));
 
         // Top Row: Genres and Rating
         HBox topRow = new HBox();
@@ -139,13 +115,16 @@ public class NowShowingController {
 
         // Title
         Label titleLabel = new Label(movie.getTitle());
-        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #212529;");
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #212529;");
         titleLabel.setWrapText(true);
-        titleLabel.setPrefHeight(60); // Ensure consistent height for titles so buttons align!
 
         // Subtitle (Duration)
         Label subtitleLabel = new Label(movie.getRuntime() + " • Active Showing");
         subtitleLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 14px;");
+
+        // Action Button Spacer
+        Region buttonSpacer = new Region();
+        VBox.setVgrow(buttonSpacer, Priority.ALWAYS);
 
         // Action Button
         Button detailsBtn = new Button("View Details");
@@ -153,8 +132,7 @@ public class NowShowingController {
         detailsBtn.setMaxWidth(Double.MAX_VALUE);
         detailsBtn.setOnAction(e -> openMovieDetails(movie));
 
-        detailsBox.getChildren().addAll(topRow, titleLabel, subtitleLabel, detailsBtn);
-        card.getChildren().addAll(imageRegion, detailsBox);
+        card.getChildren().addAll(topRow, titleLabel, subtitleLabel, buttonSpacer, detailsBtn);
         return card;
     }
 

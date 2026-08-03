@@ -178,6 +178,15 @@ public class MainLayoutController {
         }
     }
 
+    public void selectNavButtonByTitle(String title) {
+        for (Button btn : navButtons) {
+            if (btn.getText().equals(title)) {
+                setActiveButton(btn);
+                return;
+            }
+        }
+    }
+
     public void loadPageDirectly(String fxmlPath) {
         // Deselect nav buttons visually since this is a sub-page
         for (Button btn : navButtons) {

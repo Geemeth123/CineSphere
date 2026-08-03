@@ -78,6 +78,35 @@ public class ScheduleMovieController implements Initializable {
                 System.out.println("Could not load image: " + movie.getPosterPath());
             }
         }
+
+        // Load existing showtimes into addedDates and addedTimes lists
+        if (movie.getId() != null && !movie.getId().equals("-1")) {
+            try {
+                int movieId = Integer.parseInt(movie.getId().replace("M", ""));
+                List<models.Showtime> existingShows = showDAO.getShowsForMovie(movieId);
+                if (existingShows != null) {
+                    DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    for (models.Showtime st : existingShows) {
+                        try {
+                            LocalDate d = LocalDate.parse(st.getRawDate(), df);
+                            if (!addedDates.contains(d)) {
+                                addedDates.add(d);
+                            }
+                            String t = st.getRawTime();
+                            if (!addedTimes.contains(t)) {
+                                addedTimes.add(t);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    renderDates();
+                    renderTimes();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @FXML
@@ -236,12 +265,13 @@ public class ScheduleMovieController implements Initializable {
         }
 
         // Conflict Detection with existing shows
+        int movieId = Integer.parseInt(currentMovie.getId().replace("M", ""));
         for (LocalDate d : addedDates) {
             for (String t : addedTimes) {
                 LocalTime start = LocalTime.parse(t);
                 LocalTime end = start.plusMinutes(runtimeMins);
 
-                if (showDAO.isHallOccupied(hall.getId(), d.toString(), start.toString(), end.toString())) {
+                if (showDAO.isHallOccupied(hall.getId(), d.toString(), start.toString(), end.toString(), movieId)) {
                     showError("Conflict Detected: Hall " + hall.getName() + " is already occupied on " + d.toString() + " between " + start.toString() + " and " + end.toString() + ". Please select different times or another hall.");
                     return;
                 }
@@ -249,7 +279,6 @@ public class ScheduleMovieController implements Initializable {
         }
 
         hideError();
-        int movieId = Integer.parseInt(currentMovie.getId().replace("M", ""));
         
         if (showDAO.addBatchShowsSpecificDates(movieId, hall.getId(), addedDates, addedTimes)) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Shows generated successfully!");

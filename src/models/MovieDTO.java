@@ -15,7 +15,6 @@ public class MovieDTO {
     // Details specifics
     public int runtime;
     public String tagline;
-    public double popularity;
     public List<GenreDTO> genres;
     public String original_language;
 

@@ -87,7 +87,24 @@
                     </HBox>
                 </HBox>
                 
+                <!-- Promo Code Input -->
+                <VBox spacing="5">
+                    <Label text="Promo Code" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #212529;" />
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="promoCodeField" promptText="Enter code" HBox.hgrow="ALWAYS" style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 6 12;" />
+                        <Button text="Apply" onAction="#handleApplyPromo" styleClass="action-btn" prefHeight="30" style="-fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 5 15;" />
+                    </HBox>
+                    <Label fx:id="promoStatusLabel" style="-fx-font-size: 11px; -fx-text-fill: #ef4444;" visible="false" managed="false" />
+                </VBox>
+                
                 <Separator />
+                
+                <!-- Discount Details (green text, visible when discount > 0) -->
+                <HBox fx:id="discountSummaryRow" alignment="CENTER_LEFT" visible="false" managed="false">
+                    <Label fx:id="discountPctLabel" text="Discount (0% Off)" style="-fx-font-size: 12px; -fx-text-fill: #10b981;" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label fx:id="discountAmountLabel" text="-\$0.00" style="-fx-font-size: 12px; -fx-text-fill: #10b981;" />
+                </HBox>
                 
                 <HBox alignment="CENTER_LEFT">
                     <Label text="Total Amount" style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" HBox.hgrow="ALWAYS" />

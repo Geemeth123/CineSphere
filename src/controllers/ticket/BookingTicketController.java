@@ -29,10 +29,15 @@ public class BookingTicketController {
     @FXML private Label movieTitleLabel;
     @FXML private Label movieMetaLabel;
     @FXML private Label movieDescLabel;
-    @FXML private FlowPane timeSlotsPane;
+    @FXML private VBox timeSlotsPane;
     @FXML private Button selectSeatsBtn;
 
     private Showtime selectedShowtime = null;
+    private Movie preselectedMovie = null;
+
+    public void setPreselectedMovie(Movie movie) {
+        this.preselectedMovie = movie;
+    }
 
     /**
      * Initializes the booking ticket view and loads active movies asynchronously.
@@ -59,6 +64,15 @@ public class BookingTicketController {
                     });
                 }
                 movieListView.setItems(filteredData);
+
+                if (preselectedMovie != null) {
+                    for (Movie m : filteredData) {
+                        if (m.getId().equals(preselectedMovie.getId())) {
+                            movieListView.getSelectionModel().select(m);
+                            break;
+                        }
+                    }
+                }
             });
         }).start();
 
@@ -72,8 +86,6 @@ public class BookingTicketController {
                     setGraphic(null);
                     setStyle("-fx-background-color: transparent; -fx-padding: 0;");
                 } else {
-                    int availableSeats = movie.getShowtimes().stream().mapToInt(Showtime::getAvailableSeats).sum();
-
                     HBox box = new HBox(15);
                     box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                     box.setPadding(new Insets(20, 20, 20, 20));
@@ -83,11 +95,10 @@ public class BookingTicketController {
                     
                     VBox textContainer = new VBox(5);
                     Label titleLabel = new Label(movie.getTitle());
-                    titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: " + (availableSeats > 0 ? "#212529;" : "#dc3545;"));
+                    titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #212529;");
                     
-                    String seatsText = availableSeats > 0 ? availableSeats + " Seats Left" : "Sold Out";
-                    Label genreLabel = new Label(movie.getGenre() + " • " + seatsText);
-                    genreLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (availableSeats > 0 ? "#adb5bd;" : "#dc3545; -fx-font-weight: bold;"));
+                    Label genreLabel = new Label(movie.getGenre());
+                    genreLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #adb5bd;");
                     textContainer.getChildren().addAll(titleLabel, genreLabel);
                     
                     box.getChildren().addAll(iconLabel, textContainer);
@@ -95,10 +106,7 @@ public class BookingTicketController {
                     StackPane wrapper = new StackPane(box);
                     wrapper.setPadding(new Insets(0, 0, 15, 0));
                     
-                    if (availableSeats == 0) {
-                        box.getStyleClass().setAll("movie-list-item-sold-out");
-                        box.setStyle("-fx-background-color: #fff5f5; -fx-border-color: #ffe3e3; -fx-border-radius: 8; -fx-background-radius: 8;");
-                    } else if (isSelected()) {
+                    if (isSelected()) {
                         box.getStyleClass().setAll("movie-list-item-selected");
                     } else {
                         box.getStyleClass().setAll("movie-list-item");
@@ -114,12 +122,7 @@ public class BookingTicketController {
         // Handle selection cleanly
         movieListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                int available = newVal.getShowtimes().stream().mapToInt(Showtime::getAvailableSeats).sum();
-                if (available > 0) {
-                    showMovieDetails(newVal);
-                } else {
-                    Platform.runLater(() -> movieListView.getSelectionModel().clearSelection());
-                }
+                showMovieDetails(newVal);
             }
         });
     }
@@ -142,24 +145,91 @@ public class BookingTicketController {
         updateSelectSeatsButton();
         timeSlotsPane.getChildren().clear();
 
+        // Group showtimes by date
+        java.util.Map<String, java.util.List<Showtime>> groupedShowtimes = new java.util.LinkedHashMap<>();
         for (Showtime slot : movie.getShowtimes()) {
-            Button slotBtn = new Button(slot.getTime() + " - " + slot.getHall());
-            slotBtn.getStyleClass().add("time-slot-btn");
-            slotBtn.setOnAction(e -> {
-                selectedShowtime = slot;
-                for (javafx.scene.Node node : timeSlotsPane.getChildren()) {
-                    if (node instanceof Button) {
-                        node.getStyleClass().remove("time-slot-btn-active");
-                        if (!node.getStyleClass().contains("time-slot-btn")) {
-                            node.getStyleClass().add("time-slot-btn");
+            String date = slot.getRawDate() != null ? slot.getRawDate() : "Today";
+            groupedShowtimes.computeIfAbsent(date, k -> new java.util.ArrayList<>()).add(slot);
+        }
+
+        for (java.util.Map.Entry<String, java.util.List<Showtime>> entry : groupedShowtimes.entrySet()) {
+            VBox dateGroup = new VBox(8);
+            dateGroup.setPadding(new Insets(5, 0, 10, 0));
+
+            Label dateLbl = new Label(entry.getKey());
+            dateLbl.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+            
+            FlowPane slotsFlow = new FlowPane();
+            slotsFlow.setHgap(15);
+            slotsFlow.setVgap(15);
+
+            for (Showtime slot : entry.getValue()) {
+                Button slotBtn = new Button();
+                slotBtn.setPrefWidth(140);
+                slotBtn.setMinHeight(50);
+                
+                VBox btnContent = new VBox(2);
+                btnContent.setAlignment(javafx.geometry.Pos.CENTER);
+                
+                Label timeHallLbl = new Label(slot.getTime() + " - " + slot.getHall());
+                Label seatsLbl;
+                
+                if (slot.getAvailableSeats() <= 0) {
+                    timeHallLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #991b1b;");
+                    seatsLbl = new Label("Sold Out");
+                    seatsLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #ef4444; -fx-font-weight: bold;");
+                    
+                    slotBtn.setDisable(true);
+                    slotBtn.setStyle("-fx-background-color: #fee2e2; -fx-border-color: #fca5a5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-opacity: 0.95;");
+                } else {
+                    timeHallLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #1e293b;");
+                    seatsLbl = new Label(slot.getAvailableSeats() + " left");
+                    seatsLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #0ea5e9; -fx-font-weight: bold;");
+                    
+                    slotBtn.getStyleClass().add("time-slot-btn");
+                    slotBtn.setOnAction(e -> {
+                        selectedShowtime = slot;
+                        // Clear active style from all other buttons in all date groups
+                        for (javafx.scene.Node groupNode : timeSlotsPane.getChildren()) {
+                            if (groupNode instanceof VBox) {
+                                for (javafx.scene.Node groupChild : ((VBox) groupNode).getChildren()) {
+                                    if (groupChild instanceof FlowPane) {
+                                        for (javafx.scene.Node btnNode : ((FlowPane) groupChild).getChildren()) {
+                                            if (btnNode instanceof Button) {
+                                                Button otherBtn = (Button) btnNode;
+                                                otherBtn.getStyleClass().remove("time-slot-btn-active");
+                                                if (!otherBtn.getStyleClass().contains("time-slot-btn") && !otherBtn.isDisable()) {
+                                                    otherBtn.getStyleClass().add("time-slot-btn");
+                                                }
+                                                // Reset text fills for normal slot buttons
+                                                if (!otherBtn.isDisable() && otherBtn.getGraphic() instanceof VBox) {
+                                                    VBox otherContent = (VBox) otherBtn.getGraphic();
+                                                    if (otherContent.getChildren().size() >= 2) {
+                                                        otherContent.getChildren().get(0).setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #1e293b;");
+                                                        otherContent.getChildren().get(1).setStyle("-fx-font-size: 10px; -fx-text-fill: #0ea5e9; -fx-font-weight: bold;");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
+                        slotBtn.getStyleClass().remove("time-slot-btn");
+                        slotBtn.getStyleClass().add("time-slot-btn-active");
+                        // Active colors for selected button
+                        timeHallLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #ffffff;");
+                        seatsLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #e0f2fe; -fx-font-weight: bold;");
+                        updateSelectSeatsButton();
+                    });
                 }
-                slotBtn.getStyleClass().remove("time-slot-btn");
-                slotBtn.getStyleClass().add("time-slot-btn-active");
-                updateSelectSeatsButton();
-            });
-            timeSlotsPane.getChildren().add(slotBtn);
+                
+                btnContent.getChildren().addAll(timeHallLbl, seatsLbl);
+                slotBtn.setGraphic(btnContent);
+                slotsFlow.getChildren().add(slotBtn);
+            }
+            dateGroup.getChildren().addAll(dateLbl, slotsFlow);
+            timeSlotsPane.getChildren().add(dateGroup);
         }
     }
 

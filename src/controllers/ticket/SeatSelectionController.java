@@ -8,8 +8,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.HBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,11 @@ public class SeatSelectionController {
     @FXML private Label selectedSeatsLabel;
     @FXML private Label adultCountLabel;
     @FXML private Label childCountLabel;
+    @FXML private TextField promoCodeField;
+    @FXML private Label promoStatusLabel;
+    @FXML private HBox discountSummaryRow;
+    @FXML private Label discountPctLabel;
+    @FXML private Label discountAmountLabel;
     @FXML private Label totalAmountLabel;
     @FXML private Button proceedBtn;
 
@@ -30,7 +37,78 @@ public class SeatSelectionController {
     private int childCount = 0;
     private double adultPrice = 350.0;
     private double childPrice = 200.0;
-    private double discountPercentage = 0.0;
+    private double autoDiscountPercentage = 0.0;
+    private double promoDiscountPercentage = 0.0;
+
+    @FXML
+    public void initialize() {
+        if (promoCodeField != null) {
+            promoCodeField.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal == null || newVal.trim().isEmpty()) {
+                    promoDiscountPercentage = 0.0;
+                    if (promoStatusLabel != null) {
+                        promoStatusLabel.setVisible(false);
+                        promoStatusLabel.setManaged(false);
+                    }
+                    updateSummary();
+                }
+            });
+        }
+    }
+
+    private double getAppliedDiscountPercentage() {
+        return promoDiscountPercentage > 0 ? promoDiscountPercentage : autoDiscountPercentage;
+    }
+
+    @FXML
+    public void handleApplyPromo() {
+        String code = promoCodeField != null ? promoCodeField.getText().trim() : "";
+        if (code.isEmpty()) {
+            promoDiscountPercentage = 0.0;
+            if (promoStatusLabel != null) {
+                promoStatusLabel.setText("");
+                promoStatusLabel.setVisible(false);
+                promoStatusLabel.setManaged(false);
+            }
+            updateSummary();
+            return;
+        }
+
+        String sql = "SELECT discount_percentage FROM promo_codes WHERE code = ? AND status = 'ACTIVE' LIMIT 1";
+        try (java.sql.Connection conn = utils.DBUtils.getConnection();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, code);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    promoDiscountPercentage = rs.getDouble("discount_percentage");
+                    if (promoStatusLabel != null) {
+                        promoStatusLabel.setText("Promo applied: " + String.format("%.0f", promoDiscountPercentage) + "% Off!");
+                        promoStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #10b981; -fx-font-weight: bold;");
+                        promoStatusLabel.setVisible(true);
+                        promoStatusLabel.setManaged(true);
+                    }
+                } else {
+                    promoDiscountPercentage = 0.0;
+                    if (promoStatusLabel != null) {
+                        promoStatusLabel.setText("Invalid or inactive promo code.");
+                        promoStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #ef4444; -fx-font-weight: bold;");
+                        promoStatusLabel.setVisible(true);
+                        promoStatusLabel.setManaged(true);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            promoDiscountPercentage = 0.0;
+            if (promoStatusLabel != null) {
+                promoStatusLabel.setText("Database error checking code.");
+                promoStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #ef4444; -fx-font-weight: bold;");
+                promoStatusLabel.setVisible(true);
+                promoStatusLabel.setManaged(true);
+            }
+        }
+        updateSummary();
+    }
     
     private List<String> selectedSeats = new ArrayList<>();
     
@@ -71,7 +149,7 @@ public class SeatSelectionController {
             stmt.setInt(2, sId);
             try (java.sql.ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    this.discountPercentage = rs.getDouble("discount");
+                    this.autoDiscountPercentage = rs.getDouble("discount");
                 }
             }
         } catch (Exception e) {
@@ -231,11 +309,26 @@ public class SeatSelectionController {
         childCountLabel.setText(String.valueOf(childCount));
 
         double subtotal = (adultCount * adultPrice) + (childCount * childPrice);
-        if (discountPercentage > 0) {
-            double discountAmt = subtotal * (discountPercentage / 100.0);
+        double discountPct = getAppliedDiscountPercentage();
+        if (discountPct > 0) {
+            double discountAmt = subtotal * (discountPct / 100.0);
             double finalTotal = subtotal - discountAmt;
-            totalAmountLabel.setText(String.format("$%.2f (%.0f%% Off)", finalTotal, discountPercentage));
+            if (discountSummaryRow != null) {
+                discountSummaryRow.setVisible(true);
+                discountSummaryRow.setManaged(true);
+            }
+            if (discountPctLabel != null) {
+                discountPctLabel.setText(String.format("Discount (%.0f%% Off)", discountPct));
+            }
+            if (discountAmountLabel != null) {
+                discountAmountLabel.setText(String.format("-$%.2f", discountAmt));
+            }
+            totalAmountLabel.setText(String.format("$%.2f", finalTotal));
         } else {
+            if (discountSummaryRow != null) {
+                discountSummaryRow.setVisible(false);
+                discountSummaryRow.setManaged(false);
+            }
             totalAmountLabel.setText(String.format("$%.2f", subtotal));
         }
 
@@ -273,7 +366,8 @@ public class SeatSelectionController {
     @FXML
     public void handleProceed() {
         double subtotal = (adultCount * adultPrice) + (childCount * childPrice);
-        double discountAmt = subtotal * (discountPercentage / 100.0);
+        double discountPct = getAppliedDiscountPercentage();
+        double discountAmt = subtotal * (discountPct / 100.0);
         double total = subtotal - discountAmt;
         String formattedTotal = String.format("$%.2f", total);
         
@@ -282,9 +376,9 @@ public class SeatSelectionController {
         alert.setHeaderText("Please confirm the booking details:");
         
         String discountText = "";
-        if (discountPercentage > 0) {
+        if (discountPct > 0) {
             discountText = "\nSubtotal: " + String.format("$%.2f", subtotal) +
-                           "\nDiscount (" + String.format("%.0f", discountPercentage) + "%): -" + String.format("$%.2f", discountAmt);
+                           "\nDiscount (" + String.format("%.0f", discountPct) + "%): -" + String.format("$%.2f", discountAmt);
         }
         
         alert.setContentText(

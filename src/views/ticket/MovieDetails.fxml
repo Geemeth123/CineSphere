@@ -44,7 +44,7 @@
                     </HBox>
 
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Label fx:id="popularityLabel" text="Popularity: 0.0" style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" />
+                        <Label fx:id="statusLabel" text="Released" style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" />
                     </HBox>
 
                     <!-- Genres Box -->

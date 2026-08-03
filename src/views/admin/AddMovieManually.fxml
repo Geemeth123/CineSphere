@@ -53,6 +53,10 @@
                         <Label text="Duration (mins)" style="-fx-font-size: 13px; -fx-text-fill: #555555;" />
                         <TextField fx:id="durationField" promptText="120" styleClass="search-field" style="-fx-font-size: 14px; -fx-background-color: white;" />
                     </VBox>
+                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                        <Label text="Rating (0.0 - 10.0)" style="-fx-font-size: 13px; -fx-text-fill: #555555;" />
+                        <TextField fx:id="ratingField" promptText="8.5" styleClass="search-field" style="-fx-font-size: 14px; -fx-background-color: white;" />
+                    </VBox>
                 </HBox>
                 
                 <VBox spacing="5.0">
