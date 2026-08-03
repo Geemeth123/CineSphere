@@ -58,6 +58,7 @@
 "src/models/UserDAO.java"
 "src/utils/DBUtils.java"
 "src/utils/EnvUtils.java"
+"src/utils/HashUtils.java"
 "src/utils/ImageUtils.java"
 "src/utils/QRCodeUtils.java"
 "src/utils/ReceiptUtils.java"

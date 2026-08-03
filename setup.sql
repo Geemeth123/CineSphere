@@ -223,10 +223,10 @@ DELIMITER ;
 
 -- 17. Initial System User Accounts
 INSERT INTO users (username, password, full_name, role) VALUES
-('admin', '123', 'System Administrator', 'ADMIN'),
-('scheduler', '123', 'Movie Scheduler', 'SCHEDULER'),
-('ticket', '123', 'Ticket Counter Staff', 'TICKET_STAFF'),
-('snack', '123', 'Snack Bar Staff', 'SNACK_STAFF');
+('admin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'System Administrator', 'ADMIN'),
+('scheduler', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Movie Scheduler', 'SCHEDULER'),
+('ticket', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Ticket Counter Staff', 'TICKET_STAFF'),
+('snack', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Snack Bar Staff', 'SNACK_STAFF');
 
 -- 18. Initial Theater Setup Data (Halls & Seats)
 INSERT INTO halls (name, total_seats, seat_rows, seat_columns) VALUES
