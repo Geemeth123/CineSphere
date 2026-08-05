@@ -1,4 +1,10 @@
+/**
+ * handle user interactions and UI logic for the NowShowing view.
+ */
 package controllers.ticket;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -10,12 +16,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.*;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import models.Movie;
-import java.util.List;
-import javafx.scene.shape.Rectangle;
-import utils.TMDBUtils;
-import java.util.stream.Collectors;
 
 public class NowShowingController {
 
@@ -39,7 +46,7 @@ public class NowShowingController {
         loaderContainer.setPadding(new Insets(100, 0, 0, 0));
         
         atlantafx.base.controls.RingProgressIndicator loader = new atlantafx.base.controls.RingProgressIndicator();
-        loader.setProgress(-1); // Indeterminate
+        loader.setProgress(-1);
         
         Label waitLbl = new Label("Please wait, loading movies...");
         waitLbl.setStyle("-fx-font-size: 16px; -fx-text-fill: #6c757d;");
@@ -98,7 +105,7 @@ public class NowShowingController {
         card.setSpacing(15);
         card.setPadding(new Insets(20));
 
-        // Top Row: Genres and Rating
+        // Genres and Rating
         HBox topRow = new HBox();
         topRow.setAlignment(Pos.CENTER_LEFT);
         
@@ -108,7 +115,7 @@ public class NowShowingController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        Label ratingLabel = new Label("⭐ " + String.format("%.1f", movie.getRating()));
+        Label ratingLabel = new Label("\u2B50 " + String.format("%.1f", movie.getRating()));
         ratingLabel.setStyle("-fx-text-fill: #ffc107; -fx-font-size: 14px; -fx-font-weight: bold;");
         
         topRow.getChildren().addAll(genreLabel, spacer, ratingLabel);
@@ -119,7 +126,7 @@ public class NowShowingController {
         titleLabel.setWrapText(true);
 
         // Subtitle (Duration)
-        Label subtitleLabel = new Label(movie.getRuntime() + " • Active Showing");
+        Label subtitleLabel = new Label(movie.getRuntime() + " \u2022 Active Showing");
         subtitleLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 14px;");
 
         // Action Button Spacer
@@ -154,3 +161,4 @@ public class NowShowingController {
         }
     }
 }
+

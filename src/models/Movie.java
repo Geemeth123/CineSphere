@@ -1,3 +1,6 @@
+/**
+ * Model class representing a Movie entity.
+ */
 package models;
 
 import java.util.List;
@@ -59,7 +62,6 @@ public class Movie {
     private double adultPrice;
     private double kidsPrice;
     private double rating;
-    private String releaseDate;
     private String tagline;
 
     public String getShowingFrom() { return showingFrom; }
@@ -77,9 +79,6 @@ public class Movie {
     public double getRating() { return rating; }
     public void setRating(double rating) { this.rating = rating; }
 
-    public String getReleaseDate() { return releaseDate; }
-    public void setReleaseDate(String releaseDate) { this.releaseDate = releaseDate; }
-
     public String getTagline() { return tagline; }
     public void setTagline(String tagline) { this.tagline = tagline; }
 
@@ -88,3 +87,4 @@ public class Movie {
         return title;
     }
 }
+

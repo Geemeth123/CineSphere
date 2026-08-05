@@ -10,7 +10,6 @@
         
         <!-- Hero Banner Area -->
         <StackPane fx:id="heroBanner" minHeight="300" maxHeight="300">
-            <!-- Semi-transparent overlay to make back button readable -->
             <AnchorPane style="-fx-background-color: rgba(0, 0, 0, 0.45);">
                 <Button text="← Back to Now Showing" styleClass="back-btn" onAction="#handleBack" AnchorPane.leftAnchor="30" AnchorPane.topAnchor="30" />
             </AnchorPane>
@@ -30,8 +29,6 @@
                     <Label fx:id="titleLabel" text="Movie Title" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #212529;" wrapText="true" />
                     
                     <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Label fx:id="yearLabel" text="2024" style="-fx-font-size: 16px; -fx-text-fill: #6c757d;" />
-                        <Label text="•" style="-fx-font-size: 16px; -fx-text-fill: #6c757d;" />
                         <Label fx:id="durationLabel" text="120 mins" style="-fx-font-size: 16px; -fx-text-fill: #6c757d;" />
                         <Label text="•" style="-fx-font-size: 16px; -fx-text-fill: #6c757d;" />
                         <Label fx:id="languageLabel" text="EN" style="-fx-font-size: 16px; -fx-text-fill: #6c757d;" />

@@ -20,7 +20,7 @@
     
     <Separator style="-fx-padding: 10 0;" />
     
-    <!-- Dates Section -->
+    <!-- Dates -->
     <VBox spacing="10.0">
         <Label text="Licensing Period" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: black;" />
         
@@ -39,7 +39,7 @@
 
     <Separator style="-fx-padding: 10 0;" />
     
-    <!-- Pricing Section -->
+    <!-- Pricing  -->
     <VBox spacing="10.0">
         <Label text="Ticket Pricing" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: black;" />
         

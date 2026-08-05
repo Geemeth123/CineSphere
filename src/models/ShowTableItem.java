@@ -1,3 +1,6 @@
+/**
+ * Model representing a row in the JavaFX TableView UI component for Show.
+ */
 package models;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -48,3 +51,4 @@ public class ShowTableItem {
         return getMovieTitle() + " (" + getHall() + " @ " + getTime() + ")";
     }
 }
+

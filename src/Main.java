@@ -1,3 +1,7 @@
+/**
+ * Description: Main entry point of the CineSphere JavaFX application.
+ */
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,9 +17,10 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        //Sets a light theme (AtlantaFX)
         Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
 
-         //Check DB connection on startup
+        //Check DB connection on startup
         try (Connection conn = DBUtils.getConnection()) {
             if (conn != null) {
                 System.out.println("Successfully connected to MySQL database.");
@@ -28,7 +33,7 @@ public class Main extends Application {
         Parent root = loader.load();
         Scene scene = new Scene(root, 800, 600);
 
-        primaryStage.setTitle("CineSphere - Login");
+        primaryStage.setTitle("CineSphere");
         primaryStage.setScene(scene);
         primaryStage.show();
         primaryStage.setMaximized(true);
@@ -38,3 +43,4 @@ public class Main extends Application {
         launch(args);
     }
 }
+

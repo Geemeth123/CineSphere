@@ -32,7 +32,7 @@
         
         <Region prefHeight="10.0" />
         
-        <!-- Form Container (Centered) -->
+        <!-- Form Container -->
         <VBox alignment="CENTER" spacing="30.0">
             
             <!-- Basic Information Card -->

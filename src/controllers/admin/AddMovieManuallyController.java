@@ -1,8 +1,15 @@
+/**
+ * Controller class to handle user interactions and UI logic for the AddMovieManually view.
+ */
 package controllers.admin;
+
+import java.io.File;
+import java.time.format.DateTimeFormatter;
 
 import controllers.MainLayoutController;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -10,11 +17,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import models.Movie;
 import models.MovieDAO;
-
-import java.io.File;
-import java.time.format.DateTimeFormatter;
-
-import javafx.scene.control.ComboBox;
 
 public class AddMovieManuallyController {
 
@@ -24,7 +26,6 @@ public class AddMovieManuallyController {
     @FXML private ComboBox<String> genreComboBox;
     @FXML private TextField durationField;
     @FXML private TextField ratingField;
-    @FXML private TextField releaseDateField;
     @FXML private TextArea synopsisArea;
     
     @FXML private Label posterLabel;
@@ -100,10 +101,6 @@ public class AddMovieManuallyController {
         String ratingStr = ratingField != null && !ratingField.getText().trim().isEmpty() ? ratingField.getText().trim() : "0.0";
         
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String releaseDate = releaseDateField != null && !releaseDateField.getText().trim().isEmpty() ? releaseDateField.getText().trim() : "";
-        if (releaseDate.isEmpty() && showingFromPicker != null && showingFromPicker.getValue() != null) {
-            releaseDate = showingFromPicker.getValue().format(dtf);
-        }
         
         String adultPriceStr = adultPriceField != null ? adultPriceField.getText().trim() : "";
         String kidsPriceStr = kidsPriceField != null ? kidsPriceField.getText().trim() : "";
@@ -142,16 +139,6 @@ public class AddMovieManuallyController {
             String showingFrom = showingFromPicker.getValue().format(dtf);
             String showingUntil = showingUntilPicker.getValue().format(dtf);
 
-            if (!releaseDate.isEmpty()) {
-                try {
-                    java.time.LocalDate.parse(releaseDate, dtf);
-                } catch (Exception e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR, "Release Date must be in YYYY-MM-DD format.");
-                    alert.showAndWait();
-                    return;
-                }
-            }
-            
             // Copy files locally
             try {
                 java.io.File posterDir = new java.io.File("data/movies/posters");
@@ -179,7 +166,6 @@ public class AddMovieManuallyController {
             movie.setPosterPath(posterPath);
             movie.setBannerPath(bannerPath);
             movie.setRating(rating);
-            movie.setReleaseDate(releaseDate);
             movie.setTagline(tagline);
             movie.setAdultPrice(adultPrice);
             movie.setKidsPrice(kidsPrice);
@@ -202,3 +188,4 @@ public class AddMovieManuallyController {
         }
     }
 }
+

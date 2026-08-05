@@ -1,28 +1,26 @@
+/**
+ * handle user interactions and UI logic for the SchedulerOverview view.
+ */
 package controllers.scheduler;
 
+import java.net.URL;
+import java.util.List;
+import java.util.ResourceBundle;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import models.ShowDAO;
-import models.ShowTableItem;
-import models.HallDAO;
 import models.DiscountDAO;
-
-import java.net.URL;
-import java.util.ResourceBundle;
-import java.util.List;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.control.Button;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ScrollPane;
+import models.HallDAO;
 import models.Movie;
 import models.MovieDAO;
+import models.ShowDAO;
+import models.ShowTableItem;
 
 public class SchedulerOverviewController implements Initializable {
 
@@ -85,3 +83,4 @@ public class SchedulerOverviewController implements Initializable {
         popularMovieLabel.setText(popularMovie);
     }
 }
+

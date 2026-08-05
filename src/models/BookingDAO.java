@@ -1,10 +1,17 @@
+/**
+ * managing database operations for the Booking entity.
+ */
 package models;
 
-import utils.DBUtils;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import utils.DBUtils;
 
 public class BookingDAO {
 
@@ -44,7 +51,7 @@ public class BookingDAO {
                 
                 if (seats == null) seats = "-";
                 
-                // Ensure enum string matches UI expectations
+                // Ensure enum string matches UI 
                 if ("CHECKED_IN".equals(status)) {
                     status = "CHECKED IN";
                 }
@@ -150,7 +157,7 @@ public class BookingDAO {
             conn = DBUtils.getConnection();
             conn.setAutoCommit(false); // Start transaction
             
-            // 1. Insert Booking
+            // Insert Booking
             String insertBooking = "INSERT INTO bookings (show_id, booked_by, adult_count, kids_count, total_amount, status) VALUES (?, ?, ?, ?, ?, 'CONFIRMED')";
             int generatedId = -1;
             try (PreparedStatement stmt = conn.prepareStatement(insertBooking, Statement.RETURN_GENERATED_KEYS)) {
@@ -174,7 +181,7 @@ public class BookingDAO {
                 return null;
             }
             
-            // 2. Fetch hall_id for the show
+            // Fetch hall_id for the show
             int hallId = -1;
             String getHall = "SELECT hall_id FROM shows WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(getHall)) {
@@ -186,10 +193,10 @@ public class BookingDAO {
                 }
             }
             
-            // 3. Insert Booking Seats
+            // Insert Booking Seats
             String insertSeats = "INSERT INTO booking_seats (booking_id, seat_id, ticket_type) VALUES (?, (SELECT id FROM seats WHERE hall_id = ? AND row_label = ? AND seat_number = ? LIMIT 1), ?)";
             try (PreparedStatement stmt = conn.prepareStatement(insertSeats)) {
-                // Distribute tickets (simple logic: assign adults first, then kids)
+                // Distribute tickets 
                 int assignedAdults = 0;
                 
                 for (String seatLabel : selectedSeats) {
@@ -265,3 +272,4 @@ public class BookingDAO {
         return null;
     }
 }
+

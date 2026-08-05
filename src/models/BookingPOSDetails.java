@@ -1,3 +1,6 @@
+/**
+ * Model class representing a BookingPOSDetails entity.
+ */
 package models;
 
 import java.math.BigDecimal;
@@ -23,3 +26,4 @@ public class BookingPOSDetails {
     public String getShowTime() { return showTime; }
     public BigDecimal getSnackDiscount() { return snackDiscount; }
 }
+

@@ -11,7 +11,7 @@
             <Label text="Manage direct pricing discounts and global promo codes." style="-fx-font-size: 14px; -fx-text-fill: #6c757d;"/>
         </VBox>
         
-        <!-- Direct Discounts Section -->
+        <!-- Direct Discounts  -->
         <VBox spacing="20">
             <HBox alignment="CENTER_LEFT">
                 <VBox spacing="5">

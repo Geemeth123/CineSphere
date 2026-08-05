@@ -1,18 +1,21 @@
+/**
+ *handle user interactions and UI logic for the TicketOverview view.
+ */
 package controllers.ticket;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import models.ShowTableItem;
-
-import javafx.scene.shape.SVGPath;
-import javafx.scene.paint.Color;
-import javafx.scene.Parent;
-import javafx.scene.layout.StackPane;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
+import models.ShowTableItem;
 
 public class TicketOverviewController {
 
@@ -32,7 +35,6 @@ public class TicketOverviewController {
 
     @FXML
     public void initialize() {
-        // Setup columns
         colShowId.setCellValueFactory(new PropertyValueFactory<>("showId"));
         colMovieTitle.setCellValueFactory(new PropertyValueFactory<>("movieTitle"));
         colHall.setCellValueFactory(new PropertyValueFactory<>("hall"));
@@ -40,7 +42,7 @@ public class TicketOverviewController {
         colSeats.setCellValueFactory(new PropertyValueFactory<>("seats"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Setup custom row coloring based on Status
+        //row coloring based on Status
         showsTable.setRowFactory(tv -> new TableRow<ShowTableItem>() {
             @Override
             protected void updateItem(ShowTableItem item, boolean empty) {
@@ -58,11 +60,11 @@ public class TicketOverviewController {
             }
         });
 
-        // Load dummy data
-        loadDummyData();
+        // Load dashboard data
+        loadDashboardData();
     }
 
-    private void loadDummyData() {
+    private void loadDashboardData() {
         models.ShowDAO showDao = new models.ShowDAO();
         ObservableList<ShowTableItem> data = FXCollections.observableArrayList(showDao.getTodayShows());
         
@@ -118,3 +120,4 @@ public class TicketOverviewController {
         }
     }
 }
+

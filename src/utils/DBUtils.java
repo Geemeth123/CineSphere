@@ -1,3 +1,6 @@
+/**
+ * Database utility class for establishing connections and loading environment configurations.
+ */
 package utils;
 
 import java.io.BufferedReader;
@@ -26,11 +29,9 @@ public class DBUtils {
                 if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
-                int idx = line.indexOf('=');
-                if (idx > 0) {
-                    String key = line.substring(0, idx).trim();
-                    String value = line.substring(idx + 1).trim();
-                    envMap.put(key, value);
+                String[] parts = line.split("=", 2);
+                if (parts.length == 2) {
+                    envMap.put(parts[0].trim(), parts[1].trim());
                 }
             }
         } catch (IOException e) {
@@ -51,3 +52,4 @@ public class DBUtils {
         return DriverManager.getConnection(url, user, password);
     }
 }
+

@@ -1,8 +1,11 @@
+/**
+ *Utility class providing SHA-256 password hashing.
+ */
 package utils;
 
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
+//SHA-256 hash
 public class HashUtils {
 
     public static String sha256(String input) {
@@ -13,6 +16,7 @@ public class HashUtils {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(input.getBytes("UTF-8"));
             StringBuilder hexString = new StringBuilder();
+            //loop through every byte
             for (byte b : hash) {
                 String hex = Integer.toHexString(0xff & b);
                 if (hex.length() == 1) {
@@ -26,3 +30,4 @@ public class HashUtils {
         }
     }
 }
+

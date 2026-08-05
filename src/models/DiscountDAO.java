@@ -1,9 +1,17 @@
+/**
+ * managing database operations for the Discount entity.
+ */
 package models;
 
-import utils.DBUtils;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import utils.DBUtils;
 
 public class DiscountDAO {
 
@@ -91,3 +99,4 @@ public class DiscountDAO {
         );
     }
 }
+

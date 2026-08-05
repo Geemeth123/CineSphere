@@ -1,3 +1,6 @@
+/**
+ * Model class representing a Hall entity.
+ */
 package models;
 
 import java.sql.Timestamp;
@@ -47,6 +50,7 @@ public class Hall {
 
     @Override
     public String toString() {
-        return name; // Useful for ComboBox displays
+        return name; 
     }
 }
+

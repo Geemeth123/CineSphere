@@ -1,4 +1,9 @@
+/**
+ * handle user interactions and UI logic for the EditMoviePricingDialog view.
+ */
 package controllers.admin;
+
+import java.time.LocalDate;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -7,8 +12,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import models.Movie;
 import models.MovieDAO;
-
-import java.time.LocalDate;
 
 public class EditMoviePricingDialogController {
 
@@ -73,7 +76,7 @@ public class EditMoviePricingDialogController {
             double kidsP = Double.parseDouble(kidsPriceField.getText());
             
             if (unsavedMovieDto != null) {
-                // We are adding a new TMDB movie
+                //TMDB movie
                 Movie createdMovie = movieDAO.createMovie(unsavedMovieDto);
                 if (createdMovie != null) {
                     createdMovie.setShowingFrom(showingFromPicker.getValue().toString());
@@ -117,3 +120,4 @@ public class EditMoviePricingDialogController {
         stage.close();
     }
 }
+

@@ -1,15 +1,19 @@
+/**
+ * handle user interactions and UI logic for the BookingVerification view.
+ */
 package controllers.ticket;
+
+import java.util.Optional;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import models.BookingTableItem;
-import java.util.Optional;
 
 public class BookingVerificationController {
 
@@ -80,7 +84,7 @@ public class BookingVerificationController {
             discountLabel.setText(String.format("-$%.2f", discount));
         }
 
-        // Generate QR Code with complete detailed lines (not minimum way)
+        // Generate QR Code with 
         String qrData = "CineSphere Ticket\n" +
                         "Booking ID: " + item.getBookingId() + "\n" +
                         "Movie: " + item.getMovieTitle() + "\n" +
@@ -97,7 +101,7 @@ public class BookingVerificationController {
             imgView.setFitHeight(180);
             qrCodeContainer.getChildren().clear();
             qrCodeContainer.getChildren().add(imgView);
-            qrCodeContainer.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;"); // Remove dashed border
+            qrCodeContainer.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;"); 
         }
 
         updateUIBasedOnStatus();
@@ -201,3 +205,4 @@ public class BookingVerificationController {
         }
     }
 }
+

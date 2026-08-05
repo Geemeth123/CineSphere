@@ -1,26 +1,24 @@
+/**
+ * handle user interactions and UI logic for the MovieDetails view.
+ */
 package controllers.ticket;
 
+import controllers.admin.EditMoviePricingDialogController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.control.Button;
+import javafx.scene.layout.StackPane;
 import models.Movie;
+import models.MovieDAO;
 import models.MovieDTO;
 import utils.TMDBUtils;
-import controllers.admin.EditMoviePricingDialogController;
-import models.MovieDAO;
 
-/**
- * Controller for displaying detailed information about a movie, including overview,
- * cast ratings, banner, genres, and booking or editing actions.
- */
 public class MovieDetailsController {
 
     @FXML
@@ -35,8 +33,6 @@ public class MovieDetailsController {
     private FlowPane genresBox;
     @FXML
     private Label ratingLabel;
-    @FXML
-    private Label yearLabel;
     @FXML
     private Label languageLabel;
     @FXML
@@ -60,9 +56,6 @@ public class MovieDetailsController {
     @FXML
     private Button actionButton;
 
-    /**
-     * Initializes the controller view.
-     */
     @FXML
     public void initialize() {
         // Initial setup if required
@@ -130,7 +123,7 @@ public class MovieDetailsController {
     }
 
     /**
-     * Helper to fetch movie details asynchronously from TMDB and update UI.
+     * fetch movie details from TMDB and update.
      * @param tmdbId TMDB movie ID to fetch
      * @param fallback Movie object to use if remote fetch returns null
      */
@@ -156,24 +149,14 @@ public class MovieDetailsController {
         }).start();
     }
 
-    /**
-     * Populates UI fields using local Movie object data.
-     * @param movie Local Movie entity
-     */
     private void populateLocalDetails(Movie movie) {
         if (movie == null) return;
         titleLabel.setText(movie.getTitle());
         taglineLabel.setText(movie.getTagline() != null && !movie.getTagline().isEmpty() ? "\"" + movie.getTagline() + "\"" : "");
-        ratingLabel.setText(String.format("⭐ %.1f", movie.getRating()));
-
-        if (movie.getReleaseDate() != null && movie.getReleaseDate().length() >= 4) {
-            yearLabel.setText(movie.getReleaseDate().substring(0, 4));
-        } else {
-            yearLabel.setText("2024");
-        }
+        ratingLabel.setText(String.format("\u2B50 %.1f", movie.getRating()));
 
         languageLabel.setText("EN");
-        durationLabel.setText("⏱ " + movie.getRuntime());
+        durationLabel.setText("\u23F1 " + movie.getRuntime());
         if (isAddNewMode) {
             statusLabel.setText("Released");
         } else {
@@ -270,10 +253,6 @@ public class MovieDetailsController {
         }
     }
 
-    /**
-     * Populates UI controls with remote TMDB movie data DTO.
-     * @param movie Remote MovieDTO
-     */
     private void populateDetails(MovieDTO movie) {
         if (movie == null) {
             titleLabel.setText("Error loading details");
@@ -284,19 +263,13 @@ public class MovieDetailsController {
         taglineLabel.setText(movie.tagline != null && !movie.tagline.isEmpty() ? "\"" + movie.tagline + "\"" : "");
 
         if (localMovie != null && localMovie.getRating() > 0) {
-            ratingLabel.setText(String.format("⭐ %.1f", localMovie.getRating()));
+            ratingLabel.setText(String.format("\u2B50 %.1f", localMovie.getRating()));
         } else {
-            ratingLabel.setText(String.format("⭐ %.1f", movie.vote_average));
-        }
-
-        if (movie.release_date != null && movie.release_date.length() >= 4) {
-            yearLabel.setText(movie.release_date.substring(0, 4));
-        } else if (localMovie != null && localMovie.getReleaseDate() != null && localMovie.getReleaseDate().length() >= 4) {
-            yearLabel.setText(localMovie.getReleaseDate().substring(0, 4));
+            ratingLabel.setText(String.format("\u2B50 %.1f", movie.vote_average));
         }
 
         languageLabel.setText(movie.original_language != null ? movie.original_language.toUpperCase() : "EN");
-        durationLabel.setText("⏱ " + movie.runtime + " mins");
+        durationLabel.setText("\u23F1 " + movie.runtime + " mins");
         
         if (isAddNewMode) {
             statusLabel.setText("Released");
@@ -319,7 +292,7 @@ public class MovieDetailsController {
             genresBox.getChildren().add(gLabel);
         }
 
-        // Prefer local image paths
+        // local image paths
         String localBanner = localMovie != null ? localMovie.getBannerPath() : null;
         if (localBanner != null && !localBanner.isEmpty()) {
             String bannerUrl = TMDBUtils.resolveMovieImagePath(localBanner);
@@ -359,7 +332,7 @@ public class MovieDetailsController {
     }
 
     /**
-     * Displays edit pricing dialog for existing theater movie.
+     * edit pricing dialog for existing theater movie.
      */
     public void handleEditPricing() {
         if (localMovie != null) {
@@ -382,9 +355,6 @@ public class MovieDetailsController {
         }
     }
 
-    /**
-     * Navigates to ticket booking view.
-     */
     @FXML
     public void handleBookTickets() {
         try {
@@ -411,9 +381,6 @@ public class MovieDetailsController {
         }
     }
 
-    /**
-     * Navigates back to parent list view based on current mode.
-     */
     @FXML
     public void handleBack() {
         try {
@@ -436,4 +403,5 @@ public class MovieDetailsController {
         }
     }
 }
+
 

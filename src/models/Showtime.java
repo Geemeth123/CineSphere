@@ -1,3 +1,6 @@
+/**
+ * Model class representing a Showtime entity.
+ */
 package models;
 
 public class Showtime {
@@ -34,3 +37,4 @@ public class Showtime {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }
+

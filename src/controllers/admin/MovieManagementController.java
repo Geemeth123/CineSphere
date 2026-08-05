@@ -1,6 +1,14 @@
+/**
+ * handle user interactions and UI logic for the MovieManagement view.
+ */
 package controllers.admin;
 
-import controllers.MainLayoutController;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
+
 import controllers.ticket.MovieDetailsController;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,16 +22,14 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import models.Movie;
 import models.MovieDAO;
 import utils.TMDBUtils;
-
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
 
 public class MovieManagementController {
 
@@ -109,21 +115,19 @@ public class MovieManagementController {
             String posterUrl = TMDBUtils.resolveMovieImagePath(movie.getPosterPath());
             poster.setImage(new Image(posterUrl, true));
         } else if (movie.getTmdbId() > 0) {
-            // Fetch poster asynchronously if not in local DB but has TMDB ID
+            // fetch poster if not in local DB but has TMDB ID
             new Thread(() -> {
                 models.MovieDTO dto = TMDBUtils.getMovieDetails(movie.getTmdbId());
                 if (dto != null && dto.poster_path != null && !dto.poster_path.isEmpty()) {
                     String posterUrl = TMDBUtils.resolveMovieImagePath(dto.poster_path);
                     javafx.application.Platform.runLater(() -> poster.setImage(new Image(posterUrl, true)));
                     
-                    // Optional: update the local database so we don't have to fetch next time
+                    //update the local database 
                     movie.setPosterPath(dto.poster_path);
                     movie.setBannerPath(dto.backdrop_path);
-                    // We'd need an update query for this, but for now just show it in UI
                 }
             }).start();
         } else {
-            // Placeholder logic
             poster.setStyle("-fx-border-color: #ccc;");
         }
         
@@ -178,10 +182,10 @@ public class MovieManagementController {
         }
         
         // Delete Button
-        Button deleteBtn = new Button("🗑");
+        Button deleteBtn = new Button("\uD83D\uDDD1");
         deleteBtn.setStyle("-fx-background-color: #ffeef0; -fx-text-fill: #dc3545; -fx-font-size: 14px; -fx-background-radius: 50%; -fx-cursor: hand; -fx-min-width: 35px; -fx-min-height: 35px; -fx-padding: 0;");
         deleteBtn.setOnAction(e -> {
-            e.consume(); // Prevent row click
+            e.consume();
             handleDelete(movie);
         });
 
@@ -242,3 +246,4 @@ public class MovieManagementController {
         }
     }
 }
+

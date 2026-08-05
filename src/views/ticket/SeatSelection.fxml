@@ -99,7 +99,7 @@
                 
                 <Separator />
                 
-                <!-- Discount Details (green text, visible when discount > 0) -->
+                <!-- Discount Details  -->
                 <HBox fx:id="discountSummaryRow" alignment="CENTER_LEFT" visible="false" managed="false">
                     <Label fx:id="discountPctLabel" text="Discount (0% Off)" style="-fx-font-size: 12px; -fx-text-fill: #10b981;" />
                     <Region HBox.hgrow="ALWAYS" />

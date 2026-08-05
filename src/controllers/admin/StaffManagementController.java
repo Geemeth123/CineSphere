@@ -1,4 +1,10 @@
+/**
+ * handle user interactions and UI logic for the StaffManagement view.
+ */
 package controllers.admin;
+
+import java.io.IOException;
+import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -7,15 +13,16 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import models.User;
 import models.UserDAO;
-
-import java.io.IOException;
-import java.util.List;
 
 public class StaffManagementController {
 
@@ -59,7 +66,7 @@ public class StaffManagementController {
         colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         
-        // Optional row styling
+        // row styling
         staffTable.setRowFactory(tv -> new TableRow<User>() {
             @Override
             protected void updateItem(User item, boolean empty) {
@@ -123,3 +130,4 @@ public class StaffManagementController {
         }
     }
 }
+

@@ -1,3 +1,6 @@
+/**
+ * Utility class for processing images.
+ */
 package utils;
 
 import java.io.File;
@@ -10,7 +13,7 @@ import java.util.UUID;
 
 public class ImageUtils {
 
-    // Ensure this directory exists in the actual filesystem
+    // Ensure this directory exists
     private static final String SNACK_IMAGE_DIR = "data/snacks/";
 
     public static String copyImage(File sourceFile) throws IOException {
@@ -23,7 +26,7 @@ public class ImageUtils {
             Files.createDirectories(destDir);
         }
 
-        // Generate unique filename to avoid overwrites
+        // Generate unique filename
         String originalName = sourceFile.getName();
         String extension = "";
         int i = originalName.lastIndexOf('.');
@@ -50,3 +53,4 @@ public class ImageUtils {
         }
     }
 }
+

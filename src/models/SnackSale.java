@@ -1,3 +1,6 @@
+/**
+ *Model class representing a SnackSale entity.
+ */
 package models;
 
 import java.math.BigDecimal;
@@ -51,3 +54,4 @@ public class SnackSale {
     public List<SnackSaleItem> getItems() { return items; }
     public void setItems(List<SnackSaleItem> items) { this.items = items; }
 }
+

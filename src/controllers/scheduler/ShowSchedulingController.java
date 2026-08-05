@@ -1,27 +1,29 @@
+/**
+ * handle user interactions and UI logic for the ShowScheduling view.
+ */
 package controllers.scheduler;
 
-import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
+import java.net.URL;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import models.Hall;
-import models.HallDAO;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import models.Movie;
 import models.MovieDAO;
 import models.ShowDAO;
-import models.Showtime;
-
-import java.net.URL;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 public class ShowSchedulingController implements Initializable {
 
@@ -98,7 +100,7 @@ public class ShowSchedulingController implements Initializable {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        Label ratingLabel = new Label("⭐ " + String.format("%.1f", movie.getRating()));
+        Label ratingLabel = new Label("\u2B50 " + String.format("%.1f", movie.getRating()));
         ratingLabel.setStyle("-fx-text-fill: #ffc107; -fx-font-size: 14px; -fx-font-weight: bold;");
         
         topRow.getChildren().addAll(genreLabel, spacer, ratingLabel);
@@ -160,6 +162,5 @@ public class ShowSchedulingController implements Initializable {
             e.printStackTrace();
         }
     }
-
-    // Removed old filter logic
 }
+

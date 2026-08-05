@@ -1,3 +1,6 @@
+/**
+ * handle user interactions and UI logic for the SeatSelection view.
+ */
 package controllers.ticket;
 
 import javafx.fxml.FXML;
@@ -116,7 +119,6 @@ public class SeatSelectionController {
     private String movieTitle;
     private String showtimeDetails;
 
-    // Initialization method called by BookingTicketController to pass data
     public void setBookingData(String showId, String title, String details) {
         this.showId = showId;
         this.movieTitle = title;
@@ -184,7 +186,7 @@ public class SeatSelectionController {
         new Thread(task).start();
     }
 
-    // Reusable method for rendering a seat grid given specific data
+    // rendering a seat grid given specific data
     public void buildSeatGrid(int rows, int cols, List<String> bookedSeats, List<String> maintenanceSeats) {
         seatGrid.getChildren().clear();
         
@@ -192,10 +194,10 @@ public class SeatSelectionController {
             for (int c = 0; c < cols; c++) {
                 String seatId = (char)('A' + r) + String.valueOf(c + 1);
                 Button seatBtn = new Button(seatId); // Show text inside seat
-                seatBtn.setPrefSize(45, 45); // Make it slightly bigger
-                seatBtn.setStyle("-fx-font-size: 10px;"); // Ensure it fits
+                seatBtn.setPrefSize(45, 45); 
+                seatBtn.setStyle("-fx-font-size: 10px;");
                 
-                // Add Tooltip for seat number hover
+                //seat number hover
                 Tooltip tooltip = new Tooltip(seatId);
                 seatBtn.setTooltip(tooltip);
                 
@@ -230,7 +232,7 @@ public class SeatSelectionController {
             }
         }
         
-        // Auto-increment ticket counter logic
+        // ticket counter logic
         if (getTotalTickets() < selectedSeats.size()) {
             adultCount++; // Default assign to adult
         } else if (getTotalTickets() > selectedSeats.size()) {
@@ -332,7 +334,7 @@ public class SeatSelectionController {
             totalAmountLabel.setText(String.format("$%.2f", subtotal));
         }
 
-        // Enable proceed if at least 1 seat selected AND ticket count matches seat count
+        // proceed if at least 1 seat selected
         if (!selectedSeats.isEmpty() && getTotalTickets() == selectedSeats.size()) {
             proceedBtn.setDisable(false);
             proceedBtn.getStyleClass().remove("primary-action-btn-disabled");
@@ -398,9 +400,12 @@ public class SeatSelectionController {
             javafx.concurrent.Task<String> task = new javafx.concurrent.Task<String>() {
                 @Override
                 protected String call() throws Exception {
+                    int userId = 3; // Default fallback 
+                    if (controllers.MainLayoutController.getInstance() != null && controllers.MainLayoutController.getInstance().getCurrentUser() != null) {
+                        userId = controllers.MainLayoutController.getInstance().getCurrentUser().getId();
+                    }
                     models.BookingDAO dao = new models.BookingDAO();
-                    // Using a dummy user ID = 2 for Counter Staff
-                    return dao.createBooking(showId, 2, adultCount, childCount, total, selectedSeats);
+                    return dao.createBooking(showId, userId, adultCount, childCount, total, selectedSeats);
                 }
             };
             
@@ -450,3 +455,4 @@ public class SeatSelectionController {
         }
     }
 }
+

@@ -1,16 +1,20 @@
+/**
+ *handle user interactions and UI logic for the SnackManagement view.
+ */
 package controllers.snackbar;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import controllers.MainLayoutController;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -20,10 +24,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import models.Snack;
 import models.SnackDAO;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class SnackManagementController {
 
@@ -181,3 +181,4 @@ public class SnackManagementController {
         MainLayoutController.getInstance().loadPageDirectly("/views/snackbar/AddSnack.fxml");
     }
 }
+

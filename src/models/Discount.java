@@ -1,7 +1,10 @@
+/**
+ * Model class representing a Discount entity.
+ */
 package models;
 
-import java.sql.Timestamp;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 public class Discount {
     private int id;
@@ -12,7 +15,6 @@ public class Discount {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     
-    // UI Helpers (Optional but useful for tables)
     private String targetName; 
 
     public Discount(int id, String targetType, int targetId, BigDecimal discountPercentage, String status, Timestamp createdAt, Timestamp updatedAt) {
@@ -49,3 +51,4 @@ public class Discount {
     public String getTargetName() { return targetName; }
     public void setTargetName(String targetName) { this.targetName = targetName; }
 }
+

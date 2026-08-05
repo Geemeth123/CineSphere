@@ -1,17 +1,24 @@
+/**
+ * handle user interactions and UI logic for the EditHall view.
+ */
 package controllers.scheduler;
-
-import controllers.MainLayoutController;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import models.Hall;
-import models.HallDAO;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import controllers.MainLayoutController;
+import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.GridPane;
+import models.Hall;
+import models.HallDAO;
 
 public class EditHallController {
 
@@ -118,3 +125,4 @@ public class EditHallController {
         errorLabel.setVisible(true);
     }
 }
+

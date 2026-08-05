@@ -1,3 +1,6 @@
+/**
+ * handle user interactions and UI logic for the BookingConfirmed view.
+ */
 package controllers.ticket;
 
 import javafx.fxml.FXML;
@@ -34,7 +37,7 @@ public class BookingConfirmedController {
             ticketBadgeLabel.getStyleClass().add("badge-confirmed");
         }
 
-        // Generate QR Code with complete detailed lines (not minimum way)
+        // QR Code 
         String qrData = "CineSphere Ticket\n" +
                         "Booking ID: " + bookingId + "\n" +
                         "Movie: " + movieTitle + "\n" +
@@ -51,7 +54,7 @@ public class BookingConfirmedController {
             imgView.setFitHeight(180);
             qrCodeContainer.getChildren().clear();
             qrCodeContainer.getChildren().add(imgView);
-            qrCodeContainer.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;"); // Remove dashed border
+            qrCodeContainer.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;"); 
         }
     }
 
@@ -91,3 +94,4 @@ public class BookingConfirmedController {
         }
     }
 }
+

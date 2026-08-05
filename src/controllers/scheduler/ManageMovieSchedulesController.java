@@ -1,21 +1,30 @@
+/**
+ * handle user interactions and UI logic for the ManageMovieSchedules view.
+ */
 package controllers.scheduler;
 
+import java.util.Optional;
+
+import controllers.MainLayoutController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import models.Movie;
+import models.MovieDAO;
 import models.ShowDAO;
 import models.Showtime;
-import models.MovieDAO;
-import controllers.MainLayoutController;
-
-import java.io.IOException;
-import java.util.Optional;
 
 public class ManageMovieSchedulesController {
 
@@ -162,3 +171,4 @@ public class ManageMovieSchedulesController {
         }
     }
 }
+

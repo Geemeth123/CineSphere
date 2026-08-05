@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS movies (
     poster_path VARCHAR(500),
     banner_path VARCHAR(500),
     rating DECIMAL(3,1) DEFAULT 0.0,
-    release_date DATE,
     duration_minutes INT NOT NULL DEFAULT 120,
     genre VARCHAR(100),
     adult_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,

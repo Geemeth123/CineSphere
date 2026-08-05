@@ -1,4 +1,10 @@
+/**
+ * handle user interactions and UI logic for the TMDBSearch view.
+ */
 package controllers.admin;
+
+import java.io.IOException;
+import java.util.List;
 
 import controllers.MainLayoutController;
 import controllers.ticket.MovieDetailsController;
@@ -9,22 +15,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import models.MovieDTO;
 import utils.TMDBUtils;
-
-import java.io.IOException;
-import java.util.List;
 
 public class TMDBSearchController {
 
@@ -76,7 +75,7 @@ public class TMDBSearchController {
                 if (results.isEmpty()) {
                     statusLabel.setText("No results found for '" + query + "'.");
                 } else {
-                    statusLabel.setText("Found " + results.size() + " result(s) — click a movie to view details.");
+                    statusLabel.setText("Found " + results.size() + " result(s) \u2014 click a movie to view details.");
                     for (MovieDTO movie : results) {
                         resultsContainer.getChildren().add(createResultCard(movie));
                     }
@@ -121,7 +120,7 @@ public class TMDBSearchController {
         titleLbl.setMinHeight(40);
         titleLbl.setMaxHeight(40);
         
-        Label detailsLbl = new Label("⭐ " + movie.vote_average + "  ·  " + movie.release_date);
+        Label detailsLbl = new Label("\u2B50 " + movie.vote_average);
         detailsLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #777777;");
         
         infoBox.getChildren().addAll(titleLbl, detailsLbl);
@@ -136,12 +135,10 @@ public class TMDBSearchController {
             Parent root = loader.load();
             
             MovieDetailsController controller = loader.getController();
-            
-            // We need an ADD_NEW mode in MovieDetailsController
-            // We will set this via a new method we'll add to MovieDetailsController
+
             controller.setAddNewMode(true);
             
-            // To reuse MovieDetailsController, we create a temporary Movie model with tmdbId
+            //temporary Movie model
             models.Movie tempMovie = new models.Movie("", dto.title, "", "", "", null);
             tempMovie.setTmdbId(dto.id);
             controller.setLocalMovie(tempMovie);
@@ -156,3 +153,4 @@ public class TMDBSearchController {
         }
     }
 }
+

@@ -1,17 +1,20 @@
+/**
+ * handle user interactions and UI logic for the SnackReceipt view.
+ */
 package controllers.snackbar;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import controllers.MainLayoutController;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.Node;
-import javafx.event.ActionEvent;
+import javafx.scene.layout.VBox;
 import models.SnackSale;
 import models.SnackSaleItem;
-import java.util.List;
-import java.math.BigDecimal;
-import controllers.MainLayoutController;
 
 public class SnackReceiptController {
     @FXML private VBox receiptCard;
@@ -96,3 +99,4 @@ public class SnackReceiptController {
         MainLayoutController.getInstance().loadPageDirectly("/views/snackbar/SnackBills.fxml");
     }
 }
+

@@ -1,6 +1,15 @@
+/**
+ * handle user interactions and UI logic for the HallManagement view.
+ */
 package controllers.scheduler;
 
-import javafx.application.Platform;
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.Optional;
+import java.util.ResourceBundle;
+
+import controllers.MainLayoutController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -8,19 +17,18 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import models.Hall;
 import models.HallDAO;
 import models.ShowDAO;
-import controllers.MainLayoutController;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
 
 public class HallManagementController implements Initializable {
 
@@ -96,7 +104,7 @@ public class HallManagementController implements Initializable {
         tagBox.getChildren().add(typeBadge);
         
         if (hall.isKidsHall()) {
-            Label kidsBadge = new Label("★ Kids");
+            Label kidsBadge = new Label("\u2605 Kids");
             kidsBadge.setStyle("-fx-background-color: #e0f2fe; -fx-text-fill: #0369a1; -fx-padding: 4 8; -fx-background-radius: 4; -fx-font-size: 11px; -fx-font-weight: bold;");
             tagBox.getChildren().add(kidsBadge);
         }
@@ -118,7 +126,7 @@ public class HallManagementController implements Initializable {
         
         VBox dimStat = new VBox(2);
         dimStat.setAlignment(Pos.CENTER);
-        Label dimVal = new Label(hall.getSeatRows() + " × " + hall.getSeatColumns());
+        Label dimVal = new Label(hall.getSeatRows() + " Ã— " + hall.getSeatColumns());
         dimVal.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
         Label dimLbl = new Label("Grid Layout");
         dimLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b; -fx-font-weight: bold;");
@@ -136,7 +144,7 @@ public class HallManagementController implements Initializable {
         HBox.setHgrow(toggleBtn, Priority.ALWAYS);
         toggleBtn.setStyle("-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 8;");
         toggleBtn.setOnAction(e -> {
-            e.consume(); // Prevent double click event from firing on card
+            e.consume();
             handleToggleStatus(hall);
         });
         
@@ -239,3 +247,4 @@ public class HallManagementController implements Initializable {
         mainContent.setDisable(false);
     }
 }
+

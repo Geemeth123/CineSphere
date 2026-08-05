@@ -1,4 +1,9 @@
+/**
+ * handle user interactions and UI logic for the Login view.
+ */
 package controllers;
+
+import java.io.IOException;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -13,8 +18,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import models.User;
 import models.UserDAO;
-
-import java.io.IOException;
 
 public class LoginController {
 
@@ -55,6 +58,7 @@ public class LoginController {
         }
     }
 
+    //helpers for errors
     private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setVisible(true);
@@ -66,6 +70,7 @@ public class LoginController {
         errorLabel.setManaged(false);
     }
 
+    // loading dashboard
     private void loadDashboard(User user, ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/components/MainLayout.fxml"));
@@ -89,3 +94,4 @@ public class LoginController {
         }
     }
 }
+

@@ -1,9 +1,18 @@
+/**
+ *managing database operations for the SnackSale entity.
+ */
 package models;
 
-import utils.DBUtils;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+
+import utils.DBUtils;
 
 public class SnackSaleDAO {
 
@@ -39,7 +48,7 @@ public class SnackSaleDAO {
             conn = DBUtils.getConnection();
             conn.setAutoCommit(false); // Start transaction
 
-            // 1. Insert Sale
+            // Insert Sale
             int saleId = -1;
             try (PreparedStatement stmt = conn.prepareStatement(insertSaleQuery, Statement.RETURN_GENERATED_KEYS)) {
                 if (sale.getBookingId() != null) {
@@ -69,7 +78,7 @@ public class SnackSaleDAO {
                 return false;
             }
 
-            // 2. Insert Items and Update Stock
+            // Insert Items and Update Stock
             String guardedStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
             try (PreparedStatement itemStmt = conn.prepareStatement(insertItemQuery);
                  PreparedStatement stockStmt = conn.prepareStatement(guardedStockQuery)) {
@@ -93,7 +102,7 @@ public class SnackSaleDAO {
                 itemStmt.executeBatch();
                 int[] stockResults = stockStmt.executeBatch();
 
-                // Check if any stock update failed (insufficient quantity)
+                // Check if any stock update failed 
                 for (int result : stockResults) {
                     if (result == 0) {
                         conn.rollback();
@@ -269,3 +278,4 @@ public class SnackSaleDAO {
         return "N/A";
     }
 }
+

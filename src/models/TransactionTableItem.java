@@ -1,6 +1,12 @@
+/**
+ * Model representing a row in the JavaFX TableView UI component for Transaction.
+ */
 package models;
 
-import javafx.beans.property.*;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class TransactionTableItem {
     private final StringProperty bookingId;
@@ -47,3 +53,4 @@ public class TransactionTableItem {
     public String getTotalAmount() { return totalAmount.get(); }
     public StringProperty totalAmountProperty() { return totalAmount; }
 }
+

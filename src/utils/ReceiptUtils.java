@@ -1,3 +1,6 @@
+/**
+ * Utility class for snapshotting UI elements and downloading ticket/snack receipts.
+ */
 package utils;
 
 import javafx.embed.swing.SwingFXUtils;
@@ -35,3 +38,4 @@ public class ReceiptUtils {
         }
     }
 }
+

@@ -1,3 +1,6 @@
+/**
+ *structured TMDB API responses for Movie.
+ */
 package models;
 
 import java.util.List;
@@ -23,3 +26,4 @@ public class MovieDTO {
         public String name;
     }
 }
+

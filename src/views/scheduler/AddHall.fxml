@@ -19,7 +19,7 @@
 
       <HBox spacing="30" VBox.vgrow="ALWAYS">
          <children>
-            <!-- Left Side: Live Preview (Matched to SeatSelection.fxml) -->
+            <!-- Left Side: Live Preview  -->
             <VBox HBox.hgrow="ALWAYS" alignment="TOP_CENTER" spacing="20" style="-fx-background-color: #fafafa; -fx-background-radius: 10; -fx-padding: 30;">
                <children>
                   <Label style="-fx-font-weight: bold; -fx-text-fill: #111111; -fx-font-size: 18px;" text="Seat Map Preview" />
@@ -41,7 +41,7 @@
                </children>
             </VBox>
             
-            <!-- Right Side: Form (Matched to SeatSelection.fxml summary card style) -->
+            <!-- Right Side: Form -->
             <VBox prefWidth="350" spacing="20" alignment="TOP_LEFT">
                <children>
                   <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #212529;" text="Configure Hall" />

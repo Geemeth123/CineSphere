@@ -1,4 +1,13 @@
+/**
+ *Utility class for generating and processing QR codes.
+ */
 package utils;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -6,13 +15,8 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import javafx.scene.image.Image;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import javafx.scene.image.Image;
 
 public class QRCodeUtils {
 
@@ -34,3 +38,4 @@ public class QRCodeUtils {
         }
     }
 }
+

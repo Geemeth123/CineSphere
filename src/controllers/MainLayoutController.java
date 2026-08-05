@@ -1,26 +1,24 @@
+/**
+ * handle user interactions and UI logic for the MainLayout view.
+ */
 package controllers;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import models.User;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainLayoutController {
 
@@ -59,7 +57,7 @@ public class MainLayoutController {
             buildTicketSidebar();
         }
         
-        // Select the first item by default if available
+        // Select the first item by default 
         if (!navButtons.isEmpty()) {
             navButtons.get(0).fire();
         }
@@ -188,7 +186,7 @@ public class MainLayoutController {
     }
 
     public void loadPageDirectly(String fxmlPath) {
-        // Deselect nav buttons visually since this is a sub-page
+        // Deselect nav buttons 
         for (Button btn : navButtons) {
             if (!btn.getStyleClass().contains("nav-button")) {
                 btn.getStyleClass().add("nav-button");
@@ -213,3 +211,4 @@ public class MainLayoutController {
         return currentUser;
     }
 }
+

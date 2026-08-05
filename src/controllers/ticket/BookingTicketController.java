@@ -1,3 +1,6 @@
+/**
+ * handle user interactions and UI logic for the BookingTicket view.
+ */
 package controllers.ticket;
 
 import javafx.application.Platform;
@@ -5,20 +8,23 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import models.Movie;
-import models.Showtime;
-import models.ShowDAO;
-
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import models.Movie;
+import models.ShowDAO;
+import models.Showtime;
 
-/**
- * Controller for ticket booking flow, handling active movie listing,
- * search filtering, showtime selection, and seat map navigation.
- */
 public class BookingTicketController {
 
     @FXML private TextField searchField;
@@ -39,12 +45,9 @@ public class BookingTicketController {
         this.preselectedMovie = movie;
     }
 
-    /**
-     * Initializes the booking ticket view and loads active movies asynchronously.
-     */
     @FXML
     public void initialize() {
-        // Load live movies from DB in background thread to keep UI responsive
+        // Load live movies from DB in background thread 
         new Thread(() -> {
             ShowDAO dao = new ShowDAO();
             java.util.List<Movie> activeMovies = dao.getActiveMoviesWithShowtimes();
@@ -90,7 +93,7 @@ public class BookingTicketController {
                     box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                     box.setPadding(new Insets(20, 20, 20, 20));
                     
-                    Label iconLabel = new Label("🎬");
+                    Label iconLabel = new Label("\uD83C\uDFAC");
                     iconLabel.setStyle("-fx-font-size: 24px;");
                     
                     VBox textContainer = new VBox(5);
@@ -138,7 +141,7 @@ public class BookingTicketController {
         detailsPane.setManaged(true);
 
         movieTitleLabel.setText(movie.getTitle());
-        movieMetaLabel.setText(movie.getGenre() + " • " + movie.getRuntime());
+        movieMetaLabel.setText(movie.getGenre() + " \u2022 " + movie.getRuntime());
         movieDescLabel.setText(movie.getDescription());
 
         selectedShowtime = null;
@@ -189,7 +192,6 @@ public class BookingTicketController {
                     slotBtn.getStyleClass().add("time-slot-btn");
                     slotBtn.setOnAction(e -> {
                         selectedShowtime = slot;
-                        // Clear active style from all other buttons in all date groups
                         for (javafx.scene.Node groupNode : timeSlotsPane.getChildren()) {
                             if (groupNode instanceof VBox) {
                                 for (javafx.scene.Node groupChild : ((VBox) groupNode).getChildren()) {
@@ -201,7 +203,7 @@ public class BookingTicketController {
                                                 if (!otherBtn.getStyleClass().contains("time-slot-btn") && !otherBtn.isDisable()) {
                                                     otherBtn.getStyleClass().add("time-slot-btn");
                                                 }
-                                                // Reset text fills for normal slot buttons
+                                                // Reset text fills for other buttons
                                                 if (!otherBtn.isDisable() && otherBtn.getGraphic() instanceof VBox) {
                                                     VBox otherContent = (VBox) otherBtn.getGraphic();
                                                     if (otherContent.getChildren().size() >= 2) {
@@ -217,7 +219,6 @@ public class BookingTicketController {
                         }
                         slotBtn.getStyleClass().remove("time-slot-btn");
                         slotBtn.getStyleClass().add("time-slot-btn-active");
-                        // Active colors for selected button
                         timeHallLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #ffffff;");
                         seatsLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #e0f2fe; -fx-font-weight: bold;");
                         updateSelectSeatsButton();
@@ -233,9 +234,6 @@ public class BookingTicketController {
         }
     }
 
-    /**
-     * Updates the enable status and styling of the seat selection button.
-     */
     private void updateSelectSeatsButton() {
         if (selectedShowtime != null) {
             selectSeatsBtn.setDisable(false);
@@ -274,4 +272,5 @@ public class BookingTicketController {
         }
     }
 }
+
 

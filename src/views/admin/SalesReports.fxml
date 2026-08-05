@@ -19,7 +19,7 @@
         <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
     </padding>
 
-    <!-- Header Section -->
+    <!-- Header  -->
     <HBox alignment="CENTER_LEFT" spacing="15.0">
         <VBox spacing="5.0">
             <Label text="Sales Reports &amp; Analytics" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #111111;" />
@@ -32,9 +32,8 @@
         <Button text="Generate Report" style="-fx-background-color: #0066ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 20px; -fx-padding: 8px 20px; -fx-cursor: hand;" onAction="#handleGenerateReport" />
     </HBox>
 
-    <!-- Cards Section -->
+    <!-- Cards  -->
     <HBox spacing="15.0">
-        <!-- Card 1 -->
         <VBox style="-fx-background-color: #f8f9fa; -fx-background-radius: 8px; -fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-border-width: 1px;" HBox.hgrow="ALWAYS">
             <padding>
                 <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
@@ -44,7 +43,6 @@
             <Label text="Gross bookings value" style="-fx-font-size: 12px; -fx-text-fill: #999999;" />
         </VBox>
 
-        <!-- Card 2 -->
         <VBox style="-fx-background-color: #f8f9fa; -fx-background-radius: 8px; -fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-border-width: 1px;" HBox.hgrow="ALWAYS">
             <padding>
                 <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
@@ -54,7 +52,6 @@
             <Label text="Adult &amp; kid admissions" style="-fx-font-size: 12px; -fx-text-fill: #999999;" />
         </VBox>
 
-        <!-- Card 3 -->
         <VBox style="-fx-background-color: #f8f9fa; -fx-background-radius: 8px; -fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-border-width: 1px;" HBox.hgrow="ALWAYS">
             <padding>
                 <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
@@ -64,7 +61,6 @@
             <Label text="Calculated average" style="-fx-font-size: 12px; -fx-text-fill: #999999;" />
         </VBox>
 
-        <!-- Card 4 -->
         <VBox style="-fx-background-color: #f8f9fa; -fx-background-radius: 8px; -fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-border-width: 1px;" HBox.hgrow="ALWAYS">
             <padding>
                 <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />

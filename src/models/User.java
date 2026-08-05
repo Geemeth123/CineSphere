@@ -1,3 +1,6 @@
+/**
+ * store user details.
+ */
 package models;
 
 import java.sql.Timestamp;
@@ -12,6 +15,7 @@ public class User {
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
+    //constructors
     public User(int id, String username, String password, String fullName, String role, String status, Timestamp createdAt, Timestamp updatedAt) {
         this.id = id;
         this.username = username;
@@ -23,6 +27,7 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
+    //getters
     public int getId() { return id; }
     public String getUsername() { return username; }
     public String getPassword() { return password; }
@@ -32,6 +37,7 @@ public class User {
     public Timestamp getCreatedAt() { return createdAt; }
     public Timestamp getUpdatedAt() { return updatedAt; }
 
+    //setters
     public void setId(int id) { this.id = id; }
     public void setUsername(String username) { this.username = username; }
     public void setPassword(String password) { this.password = password; }
@@ -41,3 +47,4 @@ public class User {
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
 }
+

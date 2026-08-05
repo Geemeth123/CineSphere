@@ -1,3 +1,6 @@
+/**
+ * Model class representing a PromoCode entity.
+ */
 package models;
 
 import java.math.BigDecimal;
@@ -33,3 +36,4 @@ public class PromoCode {
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
 }
+

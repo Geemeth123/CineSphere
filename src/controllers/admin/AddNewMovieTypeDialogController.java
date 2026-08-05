@@ -1,9 +1,12 @@
+/**
+ * Handle user interactions and UI logic for the AddNewMovieTypeDialog view.
+ */
 package controllers.admin;
 
-import javafx.fxml.FXML;
-import javafx.stage.Stage;
-import javafx.scene.control.Button;
 import controllers.MainLayoutController;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.stage.Stage;
 
 public class AddNewMovieTypeDialogController {
     
@@ -37,3 +40,4 @@ public class AddNewMovieTypeDialogController {
         stage.close();
     }
 }
+

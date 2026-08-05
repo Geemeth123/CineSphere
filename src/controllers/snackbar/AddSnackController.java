@@ -1,13 +1,20 @@
+/**
+ * handle user interactions and UI logic for the AddSnack view.
+ */
 package controllers.snackbar;
+
+import java.math.BigDecimal;
 
 import controllers.MainLayoutController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import models.Snack;
 import models.SnackDAO;
-
-import java.math.BigDecimal;
 
 public class AddSnackController {
 
@@ -220,3 +227,4 @@ public class AddSnackController {
         alert.showAndWait();
     }
 }
+

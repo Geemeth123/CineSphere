@@ -1,15 +1,19 @@
+/**
+ * Managing database operations for the User.
+ */
 package models;
-
-import utils.DBUtils;
-import utils.HashUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import utils.DBUtils;
+import utils.HashUtils;
+
 public class UserDAO {
 
+    //plaintext -> hash
     static {
         migratePlaintextPasswords();
     }
@@ -137,3 +141,4 @@ public class UserDAO {
         return false;
     }
 }
+

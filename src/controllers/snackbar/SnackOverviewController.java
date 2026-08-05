@@ -1,21 +1,23 @@
+/**
+ * handle user interactions and UI logic for the SnackOverview view.
+ */
 package controllers.snackbar;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import models.Snack;
 import models.SnackDAO;
 import models.SnackSale;
 import models.SnackSaleDAO;
-
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.util.List;
 
 public class SnackOverviewController {
 
@@ -81,3 +83,4 @@ public class SnackOverviewController {
         revenueTodayLabel.setText(String.format("%.2f", revenueToday));
     }
 }
+

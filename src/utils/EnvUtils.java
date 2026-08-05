@@ -1,3 +1,6 @@
+/**
+ * Utility class for parsing environment variables.
+ */
 package utils;
 
 import java.io.BufferedReader;
@@ -9,6 +12,7 @@ import java.util.Map;
 public class EnvUtils {
     private static final Map<String, String> envMap = new HashMap<>();
 
+    //only runs once when the class is loaded
     static {
         loadEnv(".env");
     }
@@ -34,3 +38,4 @@ public class EnvUtils {
         return envMap.get(key);
     }
 }
+

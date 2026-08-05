@@ -1,26 +1,27 @@
+/**
+ * handle user interactions and UI logic for the PendingShows view.
+ */
 package controllers.scheduler;
-
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
-import javafx.scene.control.Button;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-
-import models.Movie;
-import models.MovieDAO;
 
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import models.Movie;
+import models.MovieDAO;
 
 public class PendingShowsController implements Initializable {
 
@@ -91,7 +92,7 @@ public class PendingShowsController implements Initializable {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        Label ratingLabel = new Label("⭐ " + String.format("%.1f", movie.getRating()));
+        Label ratingLabel = new Label("\u2B50 " + String.format("%.1f", movie.getRating()));
         ratingLabel.setStyle("-fx-text-fill: #ffc107; -fx-font-size: 14px; -fx-font-weight: bold;");
         
         topRow.getChildren().addAll(genreLabel, spacer, ratingLabel);
@@ -102,7 +103,7 @@ public class PendingShowsController implements Initializable {
         titleLbl.setWrapText(true);
 
         // Subtitle (Duration)
-        Label durationLbl = new Label(movie.getRuntime() + " • Pending Schedule");
+        Label durationLbl = new Label(movie.getRuntime() + " \u2022 Pending Schedule");
         durationLbl.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 14px;");
 
         Region buttonSpacer = new Region();
@@ -133,3 +134,4 @@ public class PendingShowsController implements Initializable {
         }
     }
 }
+

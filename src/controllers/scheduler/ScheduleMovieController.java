@@ -1,20 +1,7 @@
+/**
+ * handle user interactions and UI logic for the ScheduleMovie view.
+ */
 package controllers.scheduler;
-
-import controllers.MainLayoutController;
-import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import models.Hall;
-import models.HallDAO;
-import models.Movie;
-import models.ShowDAO;
 
 import java.net.URL;
 import java.time.LocalDate;
@@ -23,6 +10,27 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import controllers.MainLayoutController;
+import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import models.Hall;
+import models.HallDAO;
+import models.Movie;
+import models.ShowDAO;
 
 public class ScheduleMovieController implements Initializable {
 
@@ -160,7 +168,7 @@ public class ScheduleMovieController implements Initializable {
             Label dLbl = new Label(d.toString());
             dLbl.setStyle("-fx-text-fill: #166534; -fx-font-weight: bold;");
             
-            Button removeBtn = new Button("×");
+            Button removeBtn = new Button("Ã—");
             removeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-padding: 0; -fx-font-size: 14px; -fx-cursor: hand;");
             removeBtn.setOnAction(e -> {
                 addedDates.remove(d);
@@ -182,7 +190,7 @@ public class ScheduleMovieController implements Initializable {
             return;
         }
         
-        // Pad single digit hour with zero for consistency
+        // Pad single digit hour with zero 
         String[] parts = timeStr.split(":");
         if (parts[0].length() == 1) {
             timeStr = "0" + timeStr;
@@ -209,7 +217,7 @@ public class ScheduleMovieController implements Initializable {
             Label timeLbl = new Label(t);
             timeLbl.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold;");
             
-            Button removeBtn = new Button("×");
+            Button removeBtn = new Button("Ã—");
             removeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-padding: 0; -fx-font-size: 14px; -fx-cursor: hand;");
             removeBtn.setOnAction(e -> {
                 addedTimes.remove(t);
@@ -246,7 +254,7 @@ public class ScheduleMovieController implements Initializable {
             runtimeMins = Integer.parseInt(currentMovie.getRuntime().replace(" mins", "").trim());
         } catch (Exception e) {}
 
-        // Check for overlaps among proposed times for each date
+        // Check for overlaps 
         for (LocalDate d : addedDates) {
             for (int i = 0; i < addedTimes.size(); i++) {
                 for (int j = i + 1; j < addedTimes.size(); j++) {
@@ -305,3 +313,4 @@ public class ScheduleMovieController implements Initializable {
         errorLabel.setManaged(false);
     }
 }
+

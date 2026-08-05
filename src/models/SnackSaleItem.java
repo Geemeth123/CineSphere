@@ -1,3 +1,6 @@
+/**
+ * Model class representing a SnackSaleItem entity.
+ */
 package models;
 
 import java.math.BigDecimal;
@@ -10,7 +13,6 @@ public class SnackSaleItem {
     private BigDecimal priceAtSale;
     private BigDecimal discountApplied;
     
-    // Additional transient fields for UI convenience
     private String snackName;
 
     public SnackSaleItem() {}
@@ -44,8 +46,7 @@ public class SnackSaleItem {
     
     public String getSnackName() { return snackName; }
     public void setSnackName(String snackName) { this.snackName = snackName; }
-    
-    // Helper to calculate total for this line item
+
     public BigDecimal getLineTotal() {
         if (priceAtSale == null) return BigDecimal.ZERO;
         BigDecimal baseTotal = priceAtSale.multiply(new BigDecimal(quantity));
@@ -56,3 +57,4 @@ public class SnackSaleItem {
         return baseTotal;
     }
 }
+

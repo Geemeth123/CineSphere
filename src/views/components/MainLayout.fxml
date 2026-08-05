@@ -23,7 +23,7 @@
             <Region prefHeight="30.0" />
             
             <VBox fx:id="navMenu" spacing="0" VBox.vgrow="ALWAYS" />
-            
+
             <Region VBox.vgrow="ALWAYS" />
             
             <VBox spacing="2.0">

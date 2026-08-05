@@ -13,7 +13,7 @@
         <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
     </padding>
 
-    <!-- Header Section -->
+    <!-- Header  -->
     <HBox alignment="CENTER_LEFT" spacing="15.0">
         <VBox spacing="5.0">
             <Label text="Movie Management" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #111111;" />
@@ -28,7 +28,7 @@
     <!-- Movie List -->
     <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
         <VBox fx:id="moviesListContainer" spacing="15.0" style="-fx-background-color: white;">
-            <!-- Movie rows will be dynamically added here -->
+            <!--  rows will be dynamically added -->
             <padding>
                 <Insets right="10.0" />
             </padding>

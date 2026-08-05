@@ -1,7 +1,15 @@
+/**
+ * handle user interactions and UI logic for the AdminOverview view.
+ */
 package controllers.admin;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
 import controllers.MainLayoutController;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,12 +20,6 @@ import javafx.scene.control.TableView;
 import models.ShowDAO;
 import models.ShowTableItem;
 import utils.DBUtils;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
 
 public class AdminOverviewController {
 
@@ -119,3 +121,4 @@ public class AdminOverviewController {
         }
     }
 }
+

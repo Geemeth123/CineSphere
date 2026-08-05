@@ -1,3 +1,6 @@
+/**
+ * handle user interactions and UI logic for the BookingHistory view.
+ */
 package controllers.ticket;
 
 import javafx.collections.FXCollections;
@@ -5,12 +8,15 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import models.BookingTableItem;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class BookingHistoryController {
 
@@ -34,11 +40,11 @@ public class BookingHistoryController {
     @FXML
     public void initialize() {
         try {
-            // Init Filter Combo
+            // Filter
             statusFilterCombo.setItems(FXCollections.observableArrayList("All Statuses", "Pending", "Confirmed", "Refunded"));
             statusFilterCombo.getSelectionModel().selectFirst();
     
-            // Init Columns
+            // Columns
             colId.setCellValueFactory(cellData -> cellData.getValue().bookingIdProperty());
             colDate.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
             colMovie.setCellValueFactory(cellData -> cellData.getValue().movieTitleProperty());
@@ -47,7 +53,7 @@ public class BookingHistoryController {
             colStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
             colAmount.setCellValueFactory(cellData -> cellData.getValue().amountProperty().asObject());
     
-            // Custom Cell Formatting for Amount
+            // Formatting for Amount
             colAmount.setCellFactory(column -> new TableCell<BookingTableItem, Double>() {
                 @Override
                 protected void updateItem(Double item, boolean empty) {
@@ -61,7 +67,7 @@ public class BookingHistoryController {
             });
             
 
-            // Custom Row Formatting for Colors
+            // Formatting for Colors
             historyTable.setRowFactory(tv -> new TableRow<BookingTableItem>() {
                 @Override
                 protected void updateItem(BookingTableItem item, boolean empty) {
@@ -87,14 +93,14 @@ public class BookingHistoryController {
                 }
             });
     
-            loadDummyData();
+            loadBookingData();
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("ERROR IN INITIALIZE: " + e.getMessage());
         }
     }
 
-    private void loadDummyData() {
+    private void loadBookingData() {
         models.BookingDAO dao = new models.BookingDAO();
         bookingList = FXCollections.observableArrayList(dao.getAllBookings());
         javafx.collections.transformation.FilteredList<BookingTableItem> filteredData = new javafx.collections.transformation.FilteredList<>(bookingList, p -> true);
@@ -192,3 +198,4 @@ public class BookingHistoryController {
         }
     }
 }
+

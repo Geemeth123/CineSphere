@@ -1,11 +1,31 @@
+/**
+ * handle user interactions and UI logic for the SnackPOS view.
+ */
 package controllers.snackbar;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -14,22 +34,15 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import models.BookingDAO;
+import models.BookingPOSDetails;
+import models.PromoCode;
+import models.PromoCodeDAO;
 import models.Snack;
 import models.SnackDAO;
 import models.SnackSale;
 import models.SnackSaleDAO;
 import models.SnackSaleItem;
-import models.BookingDAO;
-import models.BookingPOSDetails;
-import models.PromoCode;
-import models.PromoCodeDAO;
-import javafx.fxml.FXMLLoader;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class SnackPOSController {
 
@@ -216,7 +229,7 @@ public class SnackPOSController {
             return new javafx.beans.property.SimpleObjectProperty<>(BigDecimal.ZERO);
         });
 
-        // Add Action column for +, -, x buttons
+        // Action column for +, -, x buttons
         cartColAction.setCellFactory(param -> new TableCell<SnackSaleItem, Void>() {
             private final Button btnAdd = new Button("+");
             private final Button btnSub = new Button("-");
@@ -551,3 +564,4 @@ public class SnackPOSController {
         alert.showAndWait();
     }
 }
+

@@ -1,19 +1,20 @@
+/**
+ * managing database operations for the Snack entity.
+ */
 package models;
 
-import utils.DBUtils;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Data Access Object for managing snack inventory items in the database.
- */
+import utils.DBUtils;
+
 public class SnackDAO {
 
-    /**
-     * Retrieves all snacks registered in the system.
-     * @return List of all Snack objects
-     */
     public List<Snack> getAllSnacks() {
         List<Snack> snacks = new ArrayList<>();
         String query = "SELECT * FROM snacks";
@@ -142,3 +143,4 @@ public class SnackDAO {
         );
     }
 }
+

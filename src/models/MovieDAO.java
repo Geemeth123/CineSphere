@@ -1,6 +1,7 @@
+/**
+ *managing database operations for the Movie entity.
+ */
 package models;
-
-import utils.DBUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import utils.DBUtils;
 
 public class MovieDAO {
 
@@ -34,14 +37,14 @@ public class MovieDAO {
         try (Connection conn = DBUtils.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                // Delete bookings related to shows of this movie to avoid foreign key constraints
+                // Delete bookings related to shows
                 String sqlBookings = "DELETE FROM bookings WHERE show_id IN (SELECT id FROM shows WHERE movie_id = ?)";
                 try (PreparedStatement stmt = conn.prepareStatement(sqlBookings)) {
                     stmt.setInt(1, movieId);
                     stmt.executeUpdate();
                 }
 
-                // Delete the movie (this cascades to shows)
+                // Delete the movie 
                 String sqlMovie = "DELETE FROM movies WHERE id = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(sqlMovie)) {
                     stmt.setInt(1, movieId);
@@ -212,7 +215,7 @@ public class MovieDAO {
     }
 
     public List<Movie> getMoviesForScheduling() {
-        return getActiveMovies(); // For scheduling, we only care about active movies
+        return getActiveMovies(); 
     }
 
     public Movie getMovieById(int id) {
@@ -279,7 +282,7 @@ public class MovieDAO {
                 rs.getString("genre"),
                 rs.getInt("duration_minutes") + " mins",
                 rs.getString("description"),
-                new ArrayList<>() // We will fetch shows separately if needed
+                new ArrayList<>()
         );
         m.setPosterPath(rs.getString("poster_path"));
         m.setBannerPath(rs.getString("banner_path"));
@@ -292,3 +295,4 @@ public class MovieDAO {
         return m;
     }
 }
+

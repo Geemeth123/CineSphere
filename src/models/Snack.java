@@ -1,7 +1,10 @@
+/**
+ *Model class representing a Snack entity.
+ */
 package models;
 
-import java.sql.Timestamp;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 public class Snack {
     private int id;
@@ -19,7 +22,6 @@ public class Snack {
 
     public Snack() {}
 
-    // Constructor without ID (for inserts)
     public Snack(String name, String description, BigDecimal price, BigDecimal costPrice, int quantity, int minStock, String category, String status, String imagePath) {
         this.name = name;
         this.description = description;
@@ -32,7 +34,6 @@ public class Snack {
         this.imagePath = imagePath;
     }
 
-    // Full constructor
     public Snack(int id, String name, String description, BigDecimal price, BigDecimal costPrice, int quantity, int minStock, String category, String status, String imagePath, Timestamp createdAt, Timestamp updatedAt) {
         this.id = id;
         this.name = name;
@@ -86,6 +87,7 @@ public class Snack {
 
     @Override
     public String toString() {
-        return name; // Useful for ComboBoxes
+        return name; 
     }
 }
+

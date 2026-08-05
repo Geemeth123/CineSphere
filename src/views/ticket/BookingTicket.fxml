@@ -42,7 +42,6 @@
                             <Region prefHeight="20.0" />
                             <Label text="Available Time Slots" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #212529;" />
                             
-                            <!-- VBox for time slots grouped by date -->
                             <VBox fx:id="timeSlotsPane" spacing="20.0" />
                         </VBox>
                     </content>

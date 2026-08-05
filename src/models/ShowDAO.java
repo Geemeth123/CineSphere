@@ -1,12 +1,18 @@
+/**
+ * managing database operations for the Show entity.
+ */
 package models;
 
-import utils.DBUtils;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import utils.DBUtils;
 
 public class ShowDAO {
 
@@ -221,7 +227,7 @@ public class ShowDAO {
                     int totalSeats = rs.getInt("total_seats");
                     int bookedSeats = rs.getInt("booked_seats");
                     int availableSeats = totalSeats - bookedSeats;
-                    // Format display time as "dd/MM HH:mm" for better UI
+                    // Format display time as "dd/MM HH:mm" 
                     String displayTime = date.substring(0, 5) + " " + time;
                     Showtime st = new Showtime(showId, displayTime, hall, availableSeats, totalSeats);
                     st.setRawDate(date);
@@ -442,3 +448,4 @@ public class ShowDAO {
         return showtimes;
     }
 }
+

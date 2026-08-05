@@ -1,20 +1,23 @@
+/**
+ * managing database operations for the Hall entity.
+ */
 package models;
 
-import utils.DBUtils;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Data Access Object for handling cinema hall configurations and seating capacity.
- */
+import utils.DBUtils;
+
+
 public class HallDAO {
 
     private static boolean schemaInitialized = false;
 
-    /**
-     * Constructs HallDAO and ensures required schema columns exist.
-     */
     public HallDAO() {
         if (!schemaInitialized) {
             initializeSchema();
@@ -101,7 +104,7 @@ public class HallDAO {
                         if (generatedKeys.next()) {
                             hall.setId(generatedKeys.getInt(1));
 
-                            // Auto-generate seats for this new hall using the stored procedure
+                            //generate seats
                             generateSeatsForHall(conn, hall.getId(), hall.getSeatRows(), hall.getSeatColumns());
 
                             conn.commit();
@@ -221,14 +224,14 @@ public class HallDAO {
             conn = DBUtils.getConnection();
             conn.setAutoCommit(false);
             
-            // 1. Reset all seats for this hall to AVAILABLE
+            // Reset all seats 
             String resetSql = "UPDATE seats SET status = 'AVAILABLE' WHERE hall_id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(resetSql)) {
                 stmt.setInt(1, hallId);
                 stmt.executeUpdate();
             }
             
-            // 2. Set specified seats to MAINTENANCE
+            // seats to MAINTENANCE
             if (maintenanceSeats != null && !maintenanceSeats.isEmpty()) {
                 String updateSql = "UPDATE seats SET status = 'MAINTENANCE' WHERE hall_id = ? AND row_label = ? AND seat_number = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(updateSql)) {
@@ -260,3 +263,4 @@ public class HallDAO {
         }
     }
 }
+
