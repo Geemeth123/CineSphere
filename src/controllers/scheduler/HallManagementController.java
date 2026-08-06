@@ -1,5 +1,10 @@
 /**
- * handle user interactions and UI logic for the HallManagement view.
+ * Hall Management Controller (Scheduler User Role)
+ * 
+ * Responsibility:
+ * 1. Displays cinema halls as interactive UI cards in a grid layout.
+ * 2. Handles status toggling (Locking/Unlocking for MAINTENANCE mode).
+ * 3. Handles hall deletion with active show validations to prevent database conflicts.
  */
 package controllers.scheduler;
 
@@ -40,9 +45,13 @@ public class HallManagementController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Fetch all halls from DB and render cards on page load
         loadData();
     }
 
+    /**
+     * Clears container and populates UI hall cards for every cinema hall in the DB.
+     */
     private void loadData() {
         hallsContainer.getChildren().clear();
         
@@ -59,24 +68,27 @@ public class HallManagementController implements Initializable {
         }
     }
 
+    /**
+     * Dynamically builds a styled JavaFX VBox card representing a single cinema hall.
+     */
     private VBox createHallCard(Hall hall) {
         VBox card = new VBox(15);
-        card.setPrefWidth(320); // slightly more compact
+        card.setPrefWidth(320);
         card.setPadding(new Insets(20));
         card.setStyle("-fx-background-color: white; -fx-background-radius: 12px; -fx-border-color: #e2e8f0; -fx-border-radius: 12px; -fx-border-width: 1px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0); -fx-cursor: hand;");
         
-        // Hover effect for the card
+        // Dynamic hover animation effects
         card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12px; -fx-border-color: #cbd5e1; -fx-border-radius: 12px; -fx-border-width: 1px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 2); -fx-cursor: hand;"));
         card.setOnMouseExited(e -> card.setStyle("-fx-background-color: white; -fx-background-radius: 12px; -fx-border-color: #e2e8f0; -fx-border-radius: 12px; -fx-border-width: 1px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0); -fx-cursor: hand;"));
         
-        // Double-click to edit
+        // Double-click card shortcut to edit hall details
         card.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 handleEditHall(hall);
             }
         });
         
-        // Header: Name and Badges
+        // Header: Hall Name & Status Badges
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
         
@@ -95,7 +107,7 @@ public class HallManagementController implements Initializable {
         
         header.getChildren().addAll(nameLbl, hSpacer, statusBadge);
         
-        // Subtitle tags (Type and Kids)
+        // Subtitle badges (e.g. 2D/3D Type and Kids Hall indicator)
         HBox tagBox = new HBox(8);
         tagBox.setAlignment(Pos.CENTER_LEFT);
         
@@ -109,7 +121,7 @@ public class HallManagementController implements Initializable {
             tagBox.getChildren().add(kidsBadge);
         }
         
-        // Inner Stats Box
+        // Seating Capacity and Row x Column Grid Layout display
         HBox statsBox = new HBox();
         statsBox.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 8px; -fx-border-color: #f1f5f9; -fx-border-radius: 8px; -fx-padding: 12;");
         
@@ -126,7 +138,7 @@ public class HallManagementController implements Initializable {
         
         VBox dimStat = new VBox(2);
         dimStat.setAlignment(Pos.CENTER);
-        Label dimVal = new Label(hall.getSeatRows() + " Ã— " + hall.getSeatColumns());
+        Label dimVal = new Label(hall.getSeatRows() + " \u00D7 " + hall.getSeatColumns());
         dimVal.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
         Label dimLbl = new Label("Grid Layout");
         dimLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b; -fx-font-weight: bold;");
@@ -134,7 +146,7 @@ public class HallManagementController implements Initializable {
         
         statsBox.getChildren().addAll(seatStat, sSpacer, dimStat);
         
-        // Action Buttons
+        // Card action buttons: Lock/Unlock (Maintenance) & Delete
         HBox bottomBox = new HBox(10);
         bottomBox.setAlignment(Pos.CENTER);
         bottomBox.setPadding(new Insets(5, 0, 0, 0));
@@ -159,7 +171,6 @@ public class HallManagementController implements Initializable {
         
         bottomBox.getChildren().addAll(toggleBtn, deleteBtn);
         
-        // Hint text
         Label editHint = new Label("Double-click card to edit hall details");
         editHint.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-font-style: italic;");
         editHint.setMaxWidth(Double.MAX_VALUE);
@@ -169,6 +180,9 @@ public class HallManagementController implements Initializable {
         return card;
     }
 
+    /**
+     * Navigates to Edit Hall page with hall details pre-loaded.
+     */
     private void handleEditHall(Hall hall) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/scheduler/EditHall.fxml"));
@@ -183,6 +197,10 @@ public class HallManagementController implements Initializable {
         }
     }
 
+    /**
+     * Toggles hall status between ACTIVE and MAINTENANCE.
+     * Prevents locking if upcoming shows are scheduled in this hall.
+     */
     private void handleToggleStatus(Hall hall) {
         if (hall.getStatus().equals("ACTIVE")) {
             ShowDAO showDAO = new ShowDAO();
@@ -203,8 +221,14 @@ public class HallManagementController implements Initializable {
         }
     }
 
+    /**
+     * Handles hall deletion request.
+     * Validates that NO movie shows are planned/scheduled for this hall before proceeding.
+     * If active shows exist, displays a warning dialog and aborts deletion.
+     */
     private void handleDelete(Hall hall) {
         ShowDAO showDAO = new ShowDAO();
+        // Check if movies are currently scheduled in this hall
         if (showDAO.hasActiveShowsForHall(hall.getId())) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Cannot Delete Hall");
@@ -214,6 +238,7 @@ public class HallManagementController implements Initializable {
             return;
         }
 
+        // Show confirmation dialog if no active shows exist
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Deletion");
         alert.setHeaderText("Delete Hall: " + hall.getName());

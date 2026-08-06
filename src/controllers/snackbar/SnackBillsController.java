@@ -1,5 +1,11 @@
 /**
- * handle user interactions and UI logic for the SnackBills view.
+ * Snack Bills & Reports Controller (Snack Bar User Role)
+ * 
+ * Responsibility:
+ * 1. Displays completed snack sales history with revenue KPIs (total sales count, total revenue, average sale value).
+ * 2. Filters transactions by date presets (Today, Yesterday, This Week, This Month, Custom Date Range).
+ * 3. Shows line item breakdown for selected transactions.
+ * 4. Provides options to export sales summary to CSV and navigate to receipt printing views.
  */
 package controllers.snackbar;
 
@@ -38,11 +44,13 @@ import models.SnackSaleItem;
 
 public class SnackBillsController {
 
+    // UI Date Filters
     @FXML private ComboBox<String> dateFilterCombo;
     @FXML private HBox customDateBox;
     @FXML private DatePicker startDatePicker;
     @FXML private DatePicker endDatePicker;
 
+    // KPI Summary Labels
     @FXML private Label totalSalesCountLabel;
     @FXML private Label totalRevenueLabel;
     @FXML private Label avgSaleLabel;
@@ -50,6 +58,7 @@ public class SnackBillsController {
 
     @FXML private TabPane tabPane;
 
+    // Sales Summary Table & Columns
     @FXML private TableView<SnackSale> salesTable;
     @FXML private TableColumn<SnackSale, Integer> colSaleId;
     @FXML private TableColumn<SnackSale, Integer> colBookingId;
@@ -57,6 +66,7 @@ public class SnackBillsController {
     @FXML private TableColumn<SnackSale, BigDecimal> colAmount;
     @FXML private TableColumn<SnackSale, String> colTime;
 
+    // Line Items Breakdown Table & Columns
     @FXML private Label selectedSaleLabel;
     @FXML private TableView<SnackSaleItem> itemsTable;
     @FXML private TableColumn<SnackSaleItem, String> colItemName;
@@ -68,7 +78,6 @@ public class SnackBillsController {
     @FXML private Button printReceiptBtn;
     
     private SnackSale currentSelectedSale = null;
-
     private SnackSaleDAO saleDAO = new SnackSaleDAO();
     private ObservableList<SnackSale> salesData = FXCollections.observableArrayList();
     private ObservableList<SnackSaleItem> itemsData = FXCollections.observableArrayList();
@@ -82,13 +91,15 @@ public class SnackBillsController {
             setupTables();
             setupFilters();
 
+            // When user selects a row in transaction table, fetch line items and auto-switch to "Sale Items" tab
             salesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
                 if (newSelection != null) {
                     loadSaleItems(newSelection);
-                    tabPane.getSelectionModel().select(1); // Auto-switch to the Sale Items tab
+                    tabPane.getSelectionModel().select(1);
                 }
             });
 
+            // Double-click row shortcut to pop up detailed text receipt preview
             salesTable.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && salesTable.getSelectionModel().getSelectedItem() != null) {
                     showSaleDetailsDialog(salesTable.getSelectionModel().getSelectedItem());
@@ -100,6 +111,9 @@ public class SnackBillsController {
         }
     }
 
+    /**
+     * Initializes filter dropdown options and configures change listeners.
+     */
     private void setupFilters() {
         dateFilterCombo.setItems(FXCollections.observableArrayList(
             "Today", "Yesterday", "This Week", "This Month", "Custom Date Range", "All Time"
@@ -118,9 +132,12 @@ public class SnackBillsController {
             }
         });
         
-        applyPresetFilter("Today"); // Load initial data
+        applyPresetFilter("Today"); // Initial load for current date
     }
 
+    /**
+     * Calculates date range bounds for preset filters.
+     */
     private void applyPresetFilter(String selection) {
         LocalDate today = LocalDate.now();
         switch (selection) {
@@ -157,6 +174,9 @@ public class SnackBillsController {
         }
     }
 
+    /**
+     * Binds table columns to model properties.
+     */
     private void setupTables() {
         salesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         itemsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -183,6 +203,9 @@ public class SnackBillsController {
         itemsTable.setItems(itemsData);
     }
 
+    /**
+     * Fetches sales data from DB for selected date range and updates KPI metric labels.
+     */
     private void loadSalesData() {
         List<SnackSale> sales;
         if (currentStart == null && currentEnd == null) {
@@ -195,6 +218,7 @@ public class SnackBillsController {
 
         salesData.setAll(sales);
 
+        // Sum total revenue across sales
         BigDecimal revenue = BigDecimal.ZERO;
         for (SnackSale s : sales) {
             if (s.getTotalAmount() != null) {
@@ -221,6 +245,9 @@ public class SnackBillsController {
         currentSelectedSale = null;
     }
 
+    /**
+     * Loads individual snack items for a specific transaction.
+     */
     private void loadSaleItems(SnackSale sale) {
         currentSelectedSale = sale;
         selectedSaleLabel.setText("Viewing Items for Sale ID: " + sale.getId());
@@ -229,6 +256,9 @@ public class SnackBillsController {
         printReceiptBtn.setVisible(true);
     }
 
+    /**
+     * Displays a text-formatted modal receipt for double-clicked sales rows.
+     */
     private void showSaleDetailsDialog(SnackSale sale) {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Sale Details - ID: " + sale.getId());
@@ -289,6 +319,9 @@ public class SnackBillsController {
         dialog.showAndWait();
     }
 
+    /**
+     * Opens formatted graphical receipt preview for selected transaction.
+     */
     @FXML
     public void handlePrintReceipt() {
         if (currentSelectedSale != null && !itemsData.isEmpty()) {
@@ -306,6 +339,9 @@ public class SnackBillsController {
         }
     }
 
+    /**
+     * Exports current table view transactions to CSV file.
+     */
     @FXML
     public void handleExportCSV() {
         FileChooser fileChooser = new FileChooser();
