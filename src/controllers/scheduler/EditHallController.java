@@ -1,5 +1,10 @@
 /**
- * handle user interactions and UI logic for the EditHall view.
+ * Edit Hall Controller (Scheduler User Role)
+ * 
+ * Responsibility:
+ * 1. Loads an existing cinema hall's properties (Name, Type, Dimensions, Kids Hall status).
+ * 2. Renders an interactive seat layout grid where individual seats can be toggled in/out of MAINTENANCE status.
+ * 3. Persists updated hall details and seat maintenance records in the database.
  */
 package controllers.scheduler;
 
@@ -22,6 +27,7 @@ import models.HallDAO;
 
 public class EditHallController {
 
+    // Form inputs & UI grid container
     @FXML private TextField nameField;
     @FXML private ComboBox<String> typeComboBox;
     @FXML private TextField rowsField;
@@ -32,6 +38,7 @@ public class EditHallController {
 
     private Hall currentHall;
     private HallDAO hallDAO = new HallDAO();
+    // List tracking seat labels marked for maintenance (e.g. ["A1", "B4"])
     private List<String> maintenanceSeats = new ArrayList<>();
 
     @FXML
@@ -41,6 +48,9 @@ public class EditHallController {
         ));
     }
 
+    /**
+     * Initializes the edit form with target Hall data and loads seat maintenance statuses from DB.
+     */
     public void setHallData(Hall hall) {
         this.currentHall = hall;
         nameField.setText(hall.getName());
@@ -49,12 +59,16 @@ public class EditHallController {
         colsField.setText(String.valueOf(hall.getSeatColumns()));
         kidsHallCheck.setSelected(hall.isKidsHall());
 
-        // Fetch maintenance seats from DB
+        // Fetch currently broken/under-maintenance seats from DB
         maintenanceSeats = hallDAO.getMaintenanceSeats(hall.getId());
         
         generateSeatGrid();
     }
 
+    /**
+     * Generates interactive seat grid buttons.
+     * Seats under maintenance are highlighted in yellow.
+     */
     private void generateSeatGrid() {
         seatGridPreview.getChildren().clear();
         int r = currentHall.getSeatRows();
@@ -66,6 +80,7 @@ public class EditHallController {
                 Button seatBtn = new Button(seatId);
                 seatBtn.setPrefSize(45, 45);
                 
+                // Highlight yellow if seat is marked for maintenance
                 if (maintenanceSeats.contains(seatId)) {
                     seatBtn.setStyle("-fx-font-size: 10px; -fx-background-color: #ffc107; -fx-text-fill: #000; -fx-border-color: #e0a800; -fx-border-radius: 4px; -fx-background-radius: 4px;");
                 } else {
@@ -75,6 +90,7 @@ public class EditHallController {
                 Tooltip tooltip = new Tooltip(seatId);
                 seatBtn.setTooltip(tooltip);
                 
+                // Clicking a seat button toggles its maintenance status
                 seatBtn.setOnAction(e -> handleSeatToggle(seatBtn, seatId));
                 
                 seatGridPreview.add(seatBtn, j, i);
@@ -82,6 +98,9 @@ public class EditHallController {
         }
     }
 
+    /**
+     * Toggles a seat between AVAILABLE (white) and MAINTENANCE (yellow) when clicked.
+     */
     private void handleSeatToggle(Button seatBtn, String seatId) {
         if (maintenanceSeats.contains(seatId)) {
             maintenanceSeats.remove(seatId);
@@ -92,6 +111,9 @@ public class EditHallController {
         }
     }
 
+    /**
+     * Saves updated hall configuration and seat maintenance state to the database.
+     */
     @FXML
     public void handleSave(ActionEvent event) {
         String name = nameField.getText();
@@ -108,6 +130,7 @@ public class EditHallController {
         currentHall.setKidsHall(isKids);
 
         if (hallDAO.updateHall(currentHall)) {
+            // Update seat maintenance statuses in seats table
             hallDAO.updateMaintenanceSeats(currentHall.getId(), maintenanceSeats);
             MainLayoutController.getInstance().loadPageDirectly("/views/scheduler/HallManagement.fxml");
         } else {

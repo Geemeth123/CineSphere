@@ -1,5 +1,9 @@
 /**
- * managing database operations for the Snack entity.
+ * Snack Data Access Object (SnackDAO)
+ * 
+ * Responsibility:
+ * Executes SQL queries against the `snacks` database table.
+ * Supports CRUD operations (Create, Read, Update, Delete) and stock quantity adjustments.
  */
 package models;
 
@@ -15,6 +19,9 @@ import utils.DBUtils;
 
 public class SnackDAO {
 
+    /**
+     * Retrieves all snack records from the database regardless of status or stock.
+     */
     public List<Snack> getAllSnacks() {
         List<Snack> snacks = new ArrayList<>();
         String query = "SELECT * FROM snacks";
@@ -31,7 +38,9 @@ public class SnackDAO {
         return snacks;
     }
 
-
+    /**
+     * Retrieves active snacks with positive stock (quantity > 0) for display in POS view.
+     */
     public List<Snack> getActiveSnacks() {
         List<Snack> snacks = new ArrayList<>();
         String query = "SELECT * FROM snacks WHERE status = 'ACTIVE' AND quantity > 0";
@@ -48,6 +57,9 @@ public class SnackDAO {
         return snacks;
     }
 
+    /**
+     * Inserts a new snack item into the database and assigns auto-generated primary key ID.
+     */
     public boolean addSnack(Snack snack) {
         String query = "INSERT INTO snacks (name, description, price, cost_price, quantity, min_stock, category, status, image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBUtils.getConnection();
@@ -78,6 +90,9 @@ public class SnackDAO {
         return false;
     }
 
+    /**
+     * Updates details (name, price, quantity, category, status, image) for an existing snack.
+     */
     public boolean updateSnack(Snack snack) {
         String query = "UPDATE snacks SET name = ?, description = ?, price = ?, cost_price = ?, quantity = ?, min_stock = ?, category = ?, status = ?, image_path = ? WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -101,6 +116,10 @@ public class SnackDAO {
         return false;
     }
 
+    /**
+     * Adjusts inventory stock quantity (e.g. -2 for sale, +10 for restock).
+     * Prevents quantity from dropping below 0 via GREATEST(0, ...).
+     */
     public boolean updateSnackQuantity(int snackId, int quantityChange) {
         String query = "UPDATE snacks SET quantity = GREATEST(0, quantity + ?) WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -114,6 +133,9 @@ public class SnackDAO {
         return false;
     }
 
+    /**
+     * Deletes a snack record from the database by ID.
+     */
     public boolean deleteSnack(int id) {
         String query = "DELETE FROM snacks WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -126,6 +148,9 @@ public class SnackDAO {
         return false;
     }
 
+    /**
+     * Helper method mapping database ResultSet row fields to a Snack domain object.
+     */
     private Snack mapResultSetToSnack(ResultSet rs) throws SQLException {
         return new Snack(
             rs.getInt("id"),

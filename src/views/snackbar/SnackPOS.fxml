@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- 
+    SnackPOS View Layout (Snack Bar Module)
+    Controller: controllers.snackbar.SnackPOSController
+    
+    Purpose: Provides the Point-of-Sale UI split into available snacks inventory (left)
+    and order cart/checkout summary with ticket holder lookup (right).
+-->
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
@@ -28,9 +36,10 @@
     </HBox>
 
     <HBox spacing="20.0" VBox.vgrow="ALWAYS">
-        <!-- Left Side: Product Selection (Card Deck) -->
+        <!-- Left Side: Product Selection (Inventory Snack Cards) -->
         <VBox spacing="15.0" HBox.hgrow="ALWAYS" styleClass="validation-card" style="-fx-padding: 20px;">
             
+            <!-- Category Filter & Real-Time Search Bar -->
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <Label text="Available Snacks" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #212529;" />
                 <Region HBox.hgrow="ALWAYS" />
@@ -38,7 +47,7 @@
                 <TextField fx:id="searchField" promptText="Search snacks..." styleClass="search-field" />
             </HBox>
 
-            <!-- FlowPane for Snack Cards inside ScrollPane -->
+            <!-- Scrollable FlowPane Container for Dynamically Built Snack Cards -->
             <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-border-color: transparent;">
                 <content>
                     <FlowPane fx:id="cardsContainer" hgap="15.0" vgap="15.0" style="-fx-background-color: transparent;" />
@@ -46,12 +55,13 @@
             </ScrollPane>
         </VBox>
 
-        <!-- Right Side: Cart & Checkout -->
+        <!-- Right Side: Order Cart & Checkout Panel -->
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" prefWidth="450.0" minWidth="450.0" maxWidth="450.0">
             <content>
                 <VBox spacing="15.0" styleClass="validation-card" style="-fx-padding: 20px; -fx-background-color: transparent;">
                     <Label text="Current Order" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #212529;" />
                     
+                    <!-- Cart TableView with Inline Action Buttons (+, -, remove) -->
                     <TableView fx:id="cartTable" prefHeight="250.0" minHeight="200.0" styleClass="shows-table">
                         <columns>
                             <TableColumn fx:id="cartColName" prefWidth="130.0" text="Item" />
@@ -62,17 +72,19 @@
                         </columns>
                     </TableView>
 
-                    <!-- Booking Lookup Section -->
+                    <!-- Ticket Holder Booking Lookup Section -->
                     <VBox spacing="12.0" styleClass="validation-card" style="-fx-padding: 18px; -fx-background-color: #ffffff; -fx-border-color: #e5e7eb; -fx-border-radius: 8px;">
                         <HBox spacing="10.0" alignment="CENTER_LEFT">
                             <Label text="Customer:" style="-fx-font-size: 14px; -fx-text-fill: #495057; -fx-font-weight: bold; -fx-pref-width: 80;" />
                             <ComboBox fx:id="customerTypeCombo" styleClass="search-combo" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
                         </HBox>
+                        <!-- Lookup Input Box (toggled for Ticket Holders) -->
                         <VBox fx:id="bookingLookupBox" spacing="12.0" managed="false" visible="false">
                             <HBox spacing="10.0" alignment="CENTER_LEFT">
                                 <TextField fx:id="bookingIdField" promptText="Booking ID (e.g. BK-1)" HBox.hgrow="ALWAYS" styleClass="search-field" style="-fx-pref-height: 35;" />
                                 <Button text="Lookup" onAction="#handleBookingLookup" styleClass="action-btn" style="-fx-pref-height: 35; -fx-padding: 0 20;" />
                             </HBox>
+                            <!-- Booking & Seat Association Details -->
                             <VBox fx:id="bookingDetailsBox" spacing="8.0" managed="false" visible="false" styleClass="validation-card" style="-fx-background-color: #f0f7ff; -fx-padding: 15px; -fx-border-color: #bcd6f7; -fx-border-radius: 8px; -fx-background-radius: 8px;">
                                 <Label fx:id="bdMovieLabel" text="Movie: N/A" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0a4b91;" />
                                 <Label fx:id="bdHallLabel" text="Hall: N/A" style="-fx-font-size: 13px; -fx-text-fill: #2c5282;" />
@@ -86,7 +98,7 @@
                         </VBox>
                     </VBox>
 
-                    <!-- Totals Section -->
+                    <!-- Order Totals & Promo Code Section -->
                     <VBox spacing="12.0" styleClass="validation-card" style="-fx-padding: 18px; -fx-background-color: #ffffff; -fx-border-color: #e5e7eb; -fx-border-radius: 8px;">
                         <HBox alignment="CENTER_LEFT">
                             <Label text="Subtotal:" style="-fx-font-size: 14px; -fx-text-fill: #495057;" />
@@ -113,6 +125,7 @@
                         </HBox>
                     </VBox>
 
+                    <!-- Checkout Execution Button -->
                     <Button text="Complete Sale" onAction="#handleCheckout" maxWidth="Infinity" styleClass="action-btn" style="-fx-font-size: 18px; -fx-padding: 15px;" />
                 </VBox>
             </content>

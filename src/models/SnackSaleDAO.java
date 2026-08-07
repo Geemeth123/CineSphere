@@ -1,5 +1,9 @@
 /**
- *managing database operations for the SnackSale entity.
+ * Snack Sale Data Access Object (SnackSaleDAO)
+ * 
+ * Responsibility:
+ * 1. Executes atomic database transactions for POS snack purchases (inserts sale header, line items, and deducts inventory stock).
+ * 2. Provides query methods for reporting (sales history, line items, date range filtering, best-selling snack calculation).
  */
 package models;
 
@@ -25,6 +29,9 @@ public class SnackSaleDAO {
         }
     }
 
+    /**
+     * Ensures `seat_number` column exists in `snack_sales` table schema.
+     */
     private void initializeSchema() {
         try (Connection conn = DBUtils.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -38,17 +45,24 @@ public class SnackSaleDAO {
         }
     }
 
+    /**
+     * Executes an atomic database transaction for POS snack sales.
+     * Actions in single transaction:
+     * 1. Inserts parent record into `snack_sales`.
+     * 2. Inserts batch line item records into `snack_sale_items`.
+     * 3. Deducts purchased quantities from `snacks` stock (with stock >= quantity guard).
+     * Rollbacks automatically if any step or stock guard fails.
+     */
     public boolean createSale(SnackSale sale, List<SnackSaleItem> items) {
         String insertSaleQuery = "INSERT INTO snack_sales (booking_id, seat_number, user_id, total_amount) VALUES (?, ?, ?, ?)";
         String insertItemQuery = "INSERT INTO snack_sale_items (snack_sale_id, snack_id, quantity, price_at_sale, discount_applied) VALUES (?, ?, ?, ?, ?)";
-        String updateStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
 
         Connection conn = null;
         try {
             conn = DBUtils.getConnection();
-            conn.setAutoCommit(false); // Start transaction
+            conn.setAutoCommit(false); // Disable auto-commit to start atomic transaction
 
-            // Insert Sale
+            // Step 1: Insert parent sale record
             int saleId = -1;
             try (PreparedStatement stmt = conn.prepareStatement(insertSaleQuery, Statement.RETURN_GENERATED_KEYS)) {
                 if (sale.getBookingId() != null) {
@@ -78,13 +92,13 @@ public class SnackSaleDAO {
                 return false;
             }
 
-            // Insert Items and Update Stock
+            // Step 2 & 3: Insert items and update stock concurrently with stock availability guard
             String guardedStockQuery = "UPDATE snacks SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
             try (PreparedStatement itemStmt = conn.prepareStatement(insertItemQuery);
                  PreparedStatement stockStmt = conn.prepareStatement(guardedStockQuery)) {
 
                 for (SnackSaleItem item : items) {
-                    // Insert Item
+                    // Insert Line Item
                     itemStmt.setInt(1, saleId);
                     itemStmt.setInt(2, item.getSnackId());
                     itemStmt.setInt(3, item.getQuantity());
@@ -92,7 +106,7 @@ public class SnackSaleDAO {
                     itemStmt.setBigDecimal(5, item.getDiscountApplied());
                     itemStmt.addBatch();
 
-                    // Update Stock with guard
+                    // Deduct inventory stock
                     stockStmt.setInt(1, item.getQuantity());
                     stockStmt.setInt(2, item.getSnackId());
                     stockStmt.setInt(3, item.getQuantity());
@@ -102,7 +116,7 @@ public class SnackSaleDAO {
                 itemStmt.executeBatch();
                 int[] stockResults = stockStmt.executeBatch();
 
-                // Check if any stock update failed 
+                // Validate stock update results (rollback if stock was insufficient)
                 for (int result : stockResults) {
                     if (result == 0) {
                         conn.rollback();
@@ -111,7 +125,7 @@ public class SnackSaleDAO {
                 }
             }
 
-            conn.commit();
+            conn.commit(); // Commit transaction if all operations succeed
             return true;
 
         } catch (SQLException e) {
@@ -136,6 +150,9 @@ public class SnackSaleDAO {
         }
     }
 
+    /**
+     * Retrieves all completed sales headers sorted descending by sale time.
+     */
     public List<SnackSale> getAllSales() {
         List<SnackSale> sales = new ArrayList<>();
         String query = "SELECT s.*, u.username as cashier_name FROM snack_sales s LEFT JOIN users u ON s.user_id = u.id ORDER BY s.sale_time DESC";
@@ -161,6 +178,9 @@ public class SnackSaleDAO {
         return sales;
     }
 
+    /**
+     * Retrieves completed sales headers for a specific date.
+     */
     public List<SnackSale> getSalesByDate(java.time.LocalDate date) {
         List<SnackSale> sales = new ArrayList<>();
         String query = "SELECT s.*, u.username as cashier_name FROM snack_sales s LEFT JOIN users u ON s.user_id = u.id WHERE DATE(s.sale_time) = ? ORDER BY s.sale_time DESC";
@@ -188,6 +208,9 @@ public class SnackSaleDAO {
         return sales;
     }
 
+    /**
+     * Retrieves purchased line item records for a given sale ID.
+     */
     public List<SnackSaleItem> getItemsForSale(int saleId) {
         List<SnackSaleItem> items = new ArrayList<>();
         String query = "SELECT si.*, COALESCE(s.name, 'Deleted Item') as snack_name FROM snack_sale_items si LEFT JOIN snacks s ON si.snack_id = s.id WHERE si.snack_sale_id = ?";
@@ -215,6 +238,9 @@ public class SnackSaleDAO {
         return items;
     }
 
+    /**
+     * Retrieves sales headers within a start and end date range.
+     */
     public List<SnackSale> getSalesByDateRange(java.time.LocalDate start, java.time.LocalDate end) {
         List<SnackSale> sales = new ArrayList<>();
         String query = "SELECT s.*, u.username as cashier_name FROM snack_sales s LEFT JOIN users u ON s.user_id = u.id WHERE DATE(s.sale_time) >= ? AND DATE(s.sale_time) <= ? ORDER BY s.sale_time DESC";
@@ -233,16 +259,19 @@ public class SnackSaleDAO {
                           rs.getBigDecimal("total_amount"),
                           rs.getTimestamp("sale_time")
                       );
-                     sale.setCashierName(rs.getString("cashier_name"));
-                     sales.add(sale);
-                 }
-             }
+                      sale.setCashierName(rs.getString("cashier_name"));
+                      sales.add(sale);
+                  }
+              }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return sales;
     }
 
+    /**
+     * Calculates and returns the name of the top selling snack by total volume in specified date range.
+     */
     public String getBestSellingSnack(java.time.LocalDate start, java.time.LocalDate end) {
         String query = "SELECT s.name, SUM(si.quantity) as total_qty " +
                        "FROM snack_sale_items si " +

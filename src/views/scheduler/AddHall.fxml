@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- 
+    AddHall View Layout (Scheduler Module)
+    Controller: controllers.scheduler.AddHallController
+    
+    Purpose: Provides the UI for creating a new cinema hall, with a live seat grid preview on the left
+    and configuration form controls on the right.
+-->
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
@@ -13,22 +21,26 @@
 
 <VBox spacing="20" style="-fx-background-color: #ffffff; -fx-padding: 30;" stylesheets="@../ticket/ticket.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.scheduler.AddHallController">
    <children>
+      <!-- Navigation Bar -->
       <HBox>
          <Button text="← Back to Hall Management" styleClass="back-btn" onAction="#handleCancel" />
       </HBox>
 
+      <!-- Main Layout Split: Left (Live Preview) | Right (Form) -->
       <HBox spacing="30" VBox.vgrow="ALWAYS">
          <children>
-            <!-- Left Side: Live Preview  -->
+            <!-- Left Panel: Interactive Visual Seat Map Preview -->
             <VBox HBox.hgrow="ALWAYS" alignment="TOP_CENTER" spacing="20" style="-fx-background-color: #fafafa; -fx-background-radius: 10; -fx-padding: 30;">
                <children>
                   <Label style="-fx-font-weight: bold; -fx-text-fill: #111111; -fx-font-size: 18px;" text="Seat Map Preview" />
                   <Label style="-fx-text-fill: #6c757d; -fx-font-size: 13px;" text="Updates automatically (Max: 10 Rows, 15 Cols)" />
                   <Region prefHeight="10" />
                   
+                  <!-- Screen Position Indicator -->
                   <Label text="SCREEN" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #6c757d;" />
                   <Region style="-fx-background-color: #dee2e6; -fx-pref-height: 4px; -fx-max-width: 600px; -fx-background-radius: 2;" />
                   
+                  <!-- Scrollable Grid Container for Dynamic Seat Buttons -->
                   <javafx.scene.control.ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS" style="-fx-background: transparent; -fx-background-color: transparent;">
                      <content>
                         <GridPane fx:id="seatGridPreview" alignment="CENTER" hgap="10.0" vgap="10.0">
@@ -41,13 +53,14 @@
                </children>
             </VBox>
             
-            <!-- Right Side: Form -->
+            <!-- Right Panel: Hall Configuration Form Inputs -->
             <VBox prefWidth="350" spacing="20" alignment="TOP_LEFT">
                <children>
                   <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #212529;" text="Configure Hall" />
                   
                   <VBox styleClass="summary-card" spacing="20">
                      <children>
+                        <!-- Hall Name Input -->
                         <VBox spacing="8">
                            <children>
                               <Label style="-fx-font-weight: bold; -fx-text-fill: #475569;" text="Hall Name" />
@@ -55,6 +68,7 @@
                            </children>
                         </VBox>
                         
+                        <!-- Technology Type Selection Dropdown -->
                         <VBox spacing="8">
                            <children>
                               <Label style="-fx-font-weight: bold; -fx-text-fill: #475569;" text="Hall Type" />
@@ -62,6 +76,7 @@
                            </children>
                         </VBox>
                         
+                        <!-- Dimension Inputs: Seat Rows & Columns -->
                         <HBox spacing="15">
                            <children>
                               <VBox spacing="8" HBox.hgrow="ALWAYS">
@@ -79,18 +94,21 @@
                            </children>
                         </HBox>
                         
+                        <!-- Special Category Checkbox -->
                         <CheckBox fx:id="kidsHallCheck" text="Designate as Kids Hall" style="-fx-text-fill: #0d6efd; -fx-font-weight: bold;">
                            <VBox.margin>
                               <Insets top="10.0" />
                            </VBox.margin>
                         </CheckBox>
                         
+                        <!-- Error Message Label -->
                         <Label fx:id="errorLabel" style="-fx-text-fill: #dc2626;" visible="false" wrapText="true" />
                      </children>
                   </VBox>
                   
                   <Region VBox.vgrow="ALWAYS" />
                   
+                  <!-- Form Action Buttons -->
                   <Button mnemonicParsing="false" onAction="#handleSave" styleClass="primary-action-btn" maxWidth="Infinity" style="-fx-pref-height: 45;" text="Save Hall" />
                </children>
             </VBox>

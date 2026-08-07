@@ -1,5 +1,12 @@
 /**
- * handle user interactions and UI logic for the SnackPOS view.
+ * Snack Point-of-Sale (POS) Controller (Snack Bar User Role)
+ * 
+ * Responsibility:
+ * 1. Renders visual inventory cards for available snacks filtered by category and search terms.
+ * 2. Manages shopping cart items (+, -, remove actions) with real-time inventory stock checks.
+ * 3. Handles customer type classification (Walk-In vs Ticket Holder).
+ * 4. Connects Ticket Holder booking IDs to apply scheduled auto-discounts and seat associations.
+ * 5. Applies promo discount codes and executes checkout transactions via SnackSaleDAO.
  */
 package controllers.snackbar;
 
@@ -46,10 +53,12 @@ import models.SnackSaleItem;
 
 public class SnackPOSController {
 
+    // Filtering & Inventory Container
     @FXML private TextField searchField;
     @FXML private ComboBox<String> categoryFilter;
     @FXML private FlowPane cardsContainer;
 
+    // Cart Table Controls
     @FXML private TableView<SnackSaleItem> cartTable;
     @FXML private TableColumn<SnackSaleItem, String> cartColName;
     @FXML private TableColumn<SnackSaleItem, Integer> cartColQty;
@@ -57,6 +66,7 @@ public class SnackPOSController {
     @FXML private TableColumn<SnackSaleItem, BigDecimal> cartColTotal;
     @FXML private TableColumn<SnackSaleItem, Void> cartColAction;
 
+    // Ticket Holder Lookup UI Controls
     @FXML private ComboBox<String> customerTypeCombo;
     @FXML private VBox bookingLookupBox;
     @FXML private TextField bookingIdField;
@@ -66,6 +76,7 @@ public class SnackPOSController {
     @FXML private Label bdSeatsLabel;
     @FXML private Label bdTimeLabel;
 
+    // Totals & Discount Controls
     @FXML private Label subtotalLabel;
     @FXML private TextField discountCodeField;
     @FXML private Label discountLabel;
@@ -89,11 +100,13 @@ public class SnackPOSController {
         try {
             setupCartTable();
             
+            // Populate category filter dropdown
             categoryFilter.setItems(FXCollections.observableArrayList(
                 "All Categories", "Popcorn", "Beverage", "Candy", "Combo", "Other"
             ));
             categoryFilter.setValue("All Categories");
 
+            // Customer type selection listener (Walk-In vs Ticket Holder)
             customerTypeCombo.setItems(FXCollections.observableArrayList(
                 "Walk-In Customer", "Ticket Holder"
             ));
@@ -111,6 +124,7 @@ public class SnackPOSController {
 
             loadInventory();
 
+            // Real-time filter listeners for search text and category dropdown changes
             searchField.textProperty().addListener((observable, oldValue, newValue) -> renderCards());
             categoryFilter.valueProperty().addListener((observable, oldValue, newValue) -> renderCards());
         } catch (Exception e) {
@@ -118,6 +132,9 @@ public class SnackPOSController {
         }
     }
 
+    /**
+     * Clears booking metadata and resets discount states when customer type changes.
+     */
     private void resetBookingDetails() {
         bookingIdField.clear();
         bookingDetailsBox.setVisible(false);
@@ -136,6 +153,10 @@ public class SnackPOSController {
         updateTotals();
     }
 
+    /**
+     * Looks up ticket booking by Booking ID (e.g. BK-12).
+     * Displays associated movie/hall/seat metadata and applies any scheduled ticket-holder snack auto-discounts.
+     */
     @FXML
     public void handleBookingLookup() {
         String input = bookingIdField.getText();
@@ -159,7 +180,7 @@ public class SnackPOSController {
                 bookingDetailsBox.setVisible(true);
                 bookingDetailsBox.setManaged(true);
                 
-                // Populate seat toggle buttons
+                // Build interactive seat selection toggle buttons for ticket holder
                 seatsFlowPane.getChildren().clear();
                 String seatsText = details.getSeatNumbers();
                 if (seatsText != null && !seatsText.equals("-")) {
@@ -171,7 +192,6 @@ public class SnackPOSController {
                         ToggleButton seatBtn = new ToggleButton(seat);
                         seatBtn.setToggleGroup(seatGroup);
                         
-                        // Style seat toggle button
                         String baseStyle = "-fx-background-color: white; -fx-border-color: #0d6efd; -fx-border-width: 1px; " +
                                            "-fx-border-radius: 15px; -fx-background-radius: 15px; -fx-text-fill: #0d6efd; " +
                                            "-fx-font-size: 11px; -fx-padding: 4px 12px; -fx-cursor: hand; -fx-font-weight: bold;";
@@ -192,7 +212,6 @@ public class SnackPOSController {
                         
                         seatsFlowPane.getChildren().add(seatBtn);
                         
-                        // Select the first seat by default
                         if (k == 0) {
                             seatBtn.setSelected(true);
                             selectedSeatNumber = seat;
@@ -200,6 +219,7 @@ public class SnackPOSController {
                     }
                 }
                 
+                // Automatically apply scheduled snack discount if associated with movie show
                 if (details.getSnackDiscount().compareTo(BigDecimal.ZERO) > 0) {
                     currentDiscountPercentage = details.getSnackDiscount();
                     showAlert("Auto-Discount Applied", "A scheduled snack discount of " + currentDiscountPercentage + "% has been applied automatically!");
@@ -216,6 +236,9 @@ public class SnackPOSController {
         }
     }
 
+    /**
+     * Binds TableView columns and adds interactive inline +, -, remove action buttons.
+     */
     private void setupCartTable() {
         cartTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         cartColName.setCellValueFactory(new PropertyValueFactory<>("snackName"));
@@ -229,7 +252,7 @@ public class SnackPOSController {
             return new javafx.beans.property.SimpleObjectProperty<>(BigDecimal.ZERO);
         });
 
-        // Action column for +, -, x buttons
+        // Inline +, -, remove button cell factory for cart items
         cartColAction.setCellFactory(param -> new TableCell<SnackSaleItem, Void>() {
             private final Button btnAdd = new Button("+");
             private final Button btnSub = new Button("-");
@@ -242,6 +265,7 @@ public class SnackPOSController {
                 btnRemove.setStyle("-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 2px 7px; -fx-cursor: hand;");
                 pane.setAlignment(Pos.CENTER);
 
+                // Increments item quantity if stock is available
                 btnAdd.setOnAction(event -> {
                     SnackSaleItem item = getTableView().getItems().get(getIndex());
                     if (isStockAvailable(item.getSnackId(), 1)) {
@@ -253,6 +277,7 @@ public class SnackPOSController {
                     }
                 });
 
+                // Decrements item quantity
                 btnSub.setOnAction(event -> {
                     SnackSaleItem item = getTableView().getItems().get(getIndex());
                     if (item.getQuantity() > 1) {
@@ -262,6 +287,7 @@ public class SnackPOSController {
                     }
                 });
 
+                // Removes item from cart
                 btnRemove.setOnAction(event -> {
                     SnackSaleItem item = getTableView().getItems().get(getIndex());
                     cartData.remove(item);
@@ -279,6 +305,9 @@ public class SnackPOSController {
         cartTable.setItems(cartData);
     }
 
+    /**
+     * Checks available inventory stock against current quantity already added in cart.
+     */
     private boolean isStockAvailable(int snackId, int additionalQtyRequested) {
         Snack found = null;
         for (Snack s : allSnacks) {
@@ -297,11 +326,17 @@ public class SnackPOSController {
         return found.getQuantity() >= (inCartQty + additionalQtyRequested);
     }
 
+    /**
+     * Fetches active snack inventory list from database.
+     */
     private void loadInventory() {
         allSnacks = snackDAO.getActiveSnacks();
         renderCards();
     }
 
+    /**
+     * Filters inventory list based on category & search terms and renders cards.
+     */
     private void renderCards() {
         cardsContainer.getChildren().clear();
 
@@ -320,6 +355,9 @@ public class SnackPOSController {
         }
     }
 
+    /**
+     * Creates a styled UI card representing a snack item in the POS grid.
+     */
     private VBox createSnackCard(Snack snack) {
         VBox card = new VBox();
         card.setPrefWidth(180);
@@ -368,10 +406,10 @@ public class SnackPOSController {
         qtyLabel.setFont(Font.font("System", 12));
         
         if (snack.getQuantity() < 10) {
-            qtyLabel.setTextFill(Color.web("#d9534f")); // Red for low stock
+            qtyLabel.setTextFill(Color.web("#d9534f")); // Red warning for low stock
             qtyLabel.setStyle("-fx-font-weight: bold;");
         } else {
-            qtyLabel.setTextFill(Color.web("#5cb85c")); // Green for good stock
+            qtyLabel.setTextFill(Color.web("#5cb85c")); // Green for sufficient stock
         }
         
         Region spacer = new Region();
@@ -394,6 +432,9 @@ public class SnackPOSController {
         return card;
     }
 
+    /**
+     * Adds selected snack from card into cart after checking stock availability.
+     */
     private void handleAddFromCard(Snack selected) {
         if (!isStockAvailable(selected.getId(), 1)) {
             showAlert("Stock Error", "Not enough stock available for " + selected.getName() + ".");
@@ -423,6 +464,9 @@ public class SnackPOSController {
         updateTotals();
     }
 
+    /**
+     * Validates promo code and applies percentage discount.
+     */
     @FXML
     public void handleApplyDiscount() {
         String code = discountCodeField.getText();
@@ -444,6 +488,9 @@ public class SnackPOSController {
         updateTotals();
     }
 
+    /**
+     * Recalculates subtotal, discount amount, and total price labels.
+     */
     private void updateTotals() {
         BigDecimal subtotal = BigDecimal.ZERO;
         for (SnackSaleItem item : cartData) {
@@ -458,6 +505,9 @@ public class SnackPOSController {
         totalLabel.setText(String.format("$%.2f", total));
     }
 
+    /**
+     * Finalizes order, creates database transaction via SnackSaleDAO, updates inventory, and opens receipt preview.
+     */
     @FXML
     public void handleCheckout() {
         if (cartData.isEmpty()) {
@@ -507,7 +557,7 @@ public class SnackPOSController {
             sale.setBookingId(currentBookingId);
             sale.setSeatNumber(selectedSeatNumber);
             
-            int userId = 1; // Default fallback
+            int userId = 1;
             if (controllers.MainLayoutController.getInstance() != null && controllers.MainLayoutController.getInstance().getCurrentUser() != null) {
                 userId = controllers.MainLayoutController.getInstance().getCurrentUser().getId();
             }
@@ -520,11 +570,12 @@ public class SnackPOSController {
             }
 
             try {
+                // Execute atomic database sale creation and stock deduction transaction
                 boolean success = saleDAO.createSale(sale, itemsToSave);
                 if (success) {
                     showAlert("Success", "Sale completed successfully!");
                     
-                    // Route to receipt page
+                    // Route to graphical receipt view
                     try {
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/snackbar/SnackReceipt.fxml"));
                         javafx.scene.Parent root = loader.load();
@@ -537,6 +588,7 @@ public class SnackPOSController {
                         ex.printStackTrace();
                     }
                     
+                    // Reset cart and checkout form state
                     cartData.clear();
                     currentDiscountPercentage = BigDecimal.ZERO;
                     currentBookingId = null;

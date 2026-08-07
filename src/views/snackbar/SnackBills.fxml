@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- 
+    SnackBills View Layout (Snack Bar Module)
+    Controller: controllers.snackbar.SnackBillsController
+    
+    Purpose: Provides reports, KPI summary cards, sales history table, line item details, and CSV export.
+-->
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
@@ -18,7 +25,7 @@
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
 
-    <!-- Header Section -->
+    <!-- Header Section & Date Preset Filter Controls -->
     <HBox alignment="CENTER_LEFT">
         <VBox spacing="5.0">
             <Label text="Bills &amp; Reports" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #111111;" />
@@ -37,33 +44,39 @@
         </HBox>
     </HBox>
 
-    <!-- KPI Row -->
+    <!-- Key Performance Indicators (KPI Metric Cards) -->
     <HBox spacing="20.0">
+        <!-- Metric 1: Total Sales Count -->
         <VBox HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 8px; -fx-padding: 15px; -fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0);">
             <Label text="Total Sales (Count)" style="-fx-font-size: 14px; -fx-text-fill: #888888;" />
             <Label fx:id="totalSalesCountLabel" text="0" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #111111;" />
         </VBox>
+        <!-- Metric 2: Total Revenue ($) -->
         <VBox HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 8px; -fx-padding: 15px; -fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0);">
             <Label text="Total Revenue" style="-fx-font-size: 14px; -fx-text-fill: #888888;" />
             <Label fx:id="totalRevenueLabel" text="\$0.00" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #28a745;" />
         </VBox>
+        <!-- Metric 3: Average Sale Value ($) -->
         <VBox HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 8px; -fx-padding: 15px; -fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0);">
             <Label text="Avg Sale Value" style="-fx-font-size: 14px; -fx-text-fill: #888888;" />
             <Label fx:id="avgSaleLabel" text="\$0.00" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #17a2b8;" />
         </VBox>
+        <!-- Metric 4: Top Performing Snack -->
         <VBox HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 8px; -fx-padding: 15px; -fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0);">
             <Label text="Best Selling Snack" style="-fx-font-size: 14px; -fx-text-fill: #888888;" />
             <Label fx:id="bestSnackLabel" text="N/A" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #fd7e14;" />
         </VBox>
     </HBox>
 
+    <!-- Action Bar: Export CSV -->
     <HBox alignment="CENTER_RIGHT" spacing="10.0">
         <Button text="Export CSV" onAction="#handleExportCSV" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-cursor: hand;" />
     </HBox>
 
+    <!-- Tabbed Data Tables Section -->
     <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-radius: 8px;">
         <tabs>
-            <!-- Transaction History Tab -->
+            <!-- Tab 1: Transaction History Sales Headers Table -->
             <Tab text="Transaction History">
                 <content>
                     <VBox spacing="10.0" style="-fx-padding: 15px;">
@@ -80,7 +93,7 @@
                 </content>
             </Tab>
 
-            <!-- Sale Items Tab -->
+            <!-- Tab 2: Line Items Detail Table for Selected Sale -->
             <Tab text="Sale Items">
                 <content>
                     <VBox spacing="10.0" style="-fx-padding: 15px;">

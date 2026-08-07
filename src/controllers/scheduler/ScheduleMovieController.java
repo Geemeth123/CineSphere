@@ -1,5 +1,10 @@
 /**
- * handle user interactions and UI logic for the ScheduleMovie view.
+ * Schedule Movie Controller (Scheduler User Role)
+ * 
+ * Responsibility:
+ * 1. Displays licensed movie details (Title, Genre, Poster, Licensed Start/End Dates).
+ * 2. Allows selecting active cinema halls, adding multiple target show dates and showtimes (HH:mm).
+ * 3. Validates showtimes for internal time window overlaps and database hall conflicts before saving.
  */
 package controllers.scheduler;
 
@@ -34,12 +39,14 @@ import models.ShowDAO;
 
 public class ScheduleMovieController implements Initializable {
 
+    // UI Movie Info Controls
     @FXML private ImageView moviePoster;
     @FXML private Label movieTitle;
     @FXML private Label movieGenre;
     @FXML private Label movieDuration;
     @FXML private Label movieLicensedPeriod;
 
+    // Form inputs for Hall, Date, and Time
     @FXML private ComboBox<Hall> hallComboBox;
     @FXML private DatePicker dateField;
     @FXML private TextField timeField;
@@ -50,6 +57,8 @@ public class ScheduleMovieController implements Initializable {
     private Movie currentMovie;
     private HallDAO hallDAO = new HallDAO();
     private ShowDAO showDAO = new ShowDAO();
+    
+    // Lists holding selected dates and showtime strings before batch saving
     private List<LocalDate> addedDates = new ArrayList<>();
     private List<String> addedTimes = new ArrayList<>();
     private String previousPage = "/views/scheduler/ShowScheduling.fxml";
@@ -60,6 +69,7 @@ public class ScheduleMovieController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Load only ACTIVE (available) halls into the selection dropdown
         List<Hall> halls = hallDAO.getAllHalls();
         List<Hall> activeHalls = new ArrayList<>();
         for (Hall h : halls) {
@@ -70,6 +80,9 @@ public class ScheduleMovieController implements Initializable {
         hallComboBox.setItems(FXCollections.observableArrayList(activeHalls));
     }
 
+    /**
+     * Initializes the form with selected Movie metadata and populates existing showtimes.
+     */
     public void setMovie(Movie movie) {
         this.currentMovie = movie;
         movieTitle.setText(movie.getTitle());
@@ -77,6 +90,7 @@ public class ScheduleMovieController implements Initializable {
         movieDuration.setText(movie.getRuntime());
         movieLicensedPeriod.setText("Licensed: " + movie.getShowingFrom() + " to " + movie.getShowingUntil());
 
+        // Load poster image from local file or TMDB URL
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
                 String posterUrl = (movie.getPosterPath().startsWith("http") || movie.getPosterPath().startsWith("file:")) ? movie.getPosterPath() : utils.TMDBUtils.getImageUrl(movie.getPosterPath(), "w500");
@@ -87,7 +101,7 @@ public class ScheduleMovieController implements Initializable {
             }
         }
 
-        // Load existing showtimes into addedDates and addedTimes lists
+        // Fetch pre-existing showtimes for this movie from DB and populate UI pills
         if (movie.getId() != null && !movie.getId().equals("-1")) {
             try {
                 int movieId = Integer.parseInt(movie.getId().replace("M", ""));
@@ -117,6 +131,10 @@ public class ScheduleMovieController implements Initializable {
         }
     }
 
+    /**
+     * Validates and adds a target show date.
+     * Ensures date falls within movie's licensing start/end period.
+     */
     @FXML
     public void handleAddDate(ActionEvent event) {
         LocalDate selectedDate = dateField.getValue();
@@ -138,6 +156,7 @@ public class ScheduleMovieController implements Initializable {
                 System.out.println("Warning: DB License dates could not be parsed. Proceeding without strict validation.");
             }
             
+            // Check if selected date is outside licensed window
             if (selectedDate.isBefore(validStart) || selectedDate.isAfter(validEnd)) {
                 showError("Date must be within the licensed period (" + currentMovie.getShowingFrom() + " to " + currentMovie.getShowingUntil() + ").");
                 return;
@@ -158,6 +177,9 @@ public class ScheduleMovieController implements Initializable {
         }
     }
     
+    /**
+     * Renders removable green pills for added show dates.
+     */
     private void renderDates() {
         datesGrid.getChildren().clear();
         for (LocalDate d : addedDates) {
@@ -168,7 +190,7 @@ public class ScheduleMovieController implements Initializable {
             Label dLbl = new Label(d.toString());
             dLbl.setStyle("-fx-text-fill: #166534; -fx-font-weight: bold;");
             
-            Button removeBtn = new Button("Ã—");
+            Button removeBtn = new Button("\u00D7");
             removeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-padding: 0; -fx-font-size: 14px; -fx-cursor: hand;");
             removeBtn.setOnAction(e -> {
                 addedDates.remove(d);
@@ -180,17 +202,20 @@ public class ScheduleMovieController implements Initializable {
         }
     }
 
+    /**
+     * Validates HH:mm time input and adds to showtimes list.
+     */
     @FXML
     public void handleAddTime(ActionEvent event) {
         String timeStr = timeField.getText();
         if (timeStr == null || timeStr.trim().isEmpty()) return;
 
+        // Verify HH:mm format (e.g. 14:30)
         if (!timeStr.matches("([01]?[0-9]|2[0-3]):[0-5][0-9]")) {
             showError("Time must be in HH:mm format.");
             return;
         }
         
-        // Pad single digit hour with zero 
         String[] parts = timeStr.split(":");
         if (parts[0].length() == 1) {
             timeStr = "0" + timeStr;
@@ -207,6 +232,9 @@ public class ScheduleMovieController implements Initializable {
         renderTimes();
     }
 
+    /**
+     * Renders removable blue pills for added showtimes.
+     */
     private void renderTimes() {
         timesGrid.getChildren().clear();
         for (String t : addedTimes) {
@@ -217,7 +245,7 @@ public class ScheduleMovieController implements Initializable {
             Label timeLbl = new Label(t);
             timeLbl.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold;");
             
-            Button removeBtn = new Button("Ã—");
+            Button removeBtn = new Button("\u00D7");
             removeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-padding: 0; -fx-font-size: 14px; -fx-cursor: hand;");
             removeBtn.setOnAction(e -> {
                 addedTimes.remove(t);
@@ -229,6 +257,12 @@ public class ScheduleMovieController implements Initializable {
         }
     }
 
+    /**
+     * Validates hall availability and generates show records across all selected dates & times.
+     * Checks:
+     * 1. Self-overlap between added times (accounting for movie runtime length).
+     * 2. Hall occupation conflicts against existing database shows via ShowDAO.
+     */
     @FXML
     public void handleGenerateSchedule(ActionEvent event) {
         Hall hall = hallComboBox.getValue();
@@ -248,13 +282,13 @@ public class ScheduleMovieController implements Initializable {
             return;
         }
 
-        // Runtime calculation
-        int runtimeMins = 120; // Default
+        // Extract movie runtime in minutes
+        int runtimeMins = 120;
         try {
             runtimeMins = Integer.parseInt(currentMovie.getRuntime().replace(" mins", "").trim());
         } catch (Exception e) {}
 
-        // Check for overlaps 
+        // Check for internal time window overlaps among added showtimes
         for (LocalDate d : addedDates) {
             for (int i = 0; i < addedTimes.size(); i++) {
                 for (int j = i + 1; j < addedTimes.size(); j++) {
@@ -263,7 +297,6 @@ public class ScheduleMovieController implements Initializable {
                     LocalTime start2 = LocalTime.parse(addedTimes.get(j));
                     LocalTime end2 = start2.plusMinutes(runtimeMins);
 
-                    // Check if windows overlap
                     if ((start1.isBefore(end2) && end1.isAfter(start2))) {
                         showError("Time Overlap Detected: Shows at " + addedTimes.get(i) + " and " + addedTimes.get(j) + " overlap on " + d.toString() + ". Please adjust the times.");
                         return;
@@ -272,7 +305,7 @@ public class ScheduleMovieController implements Initializable {
             }
         }
 
-        // Conflict Detection with existing shows
+        // Conflict Detection: Query DB to check if selected hall is already occupied at specified times
         int movieId = Integer.parseInt(currentMovie.getId().replace("M", ""));
         for (LocalDate d : addedDates) {
             for (String t : addedTimes) {
@@ -288,6 +321,7 @@ public class ScheduleMovieController implements Initializable {
 
         hideError();
         
+        // Persist batch show schedule entries into database
         if (showDAO.addBatchShowsSpecificDates(movieId, hall.getId(), addedDates, addedTimes)) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Shows generated successfully!");
             alert.showAndWait();
