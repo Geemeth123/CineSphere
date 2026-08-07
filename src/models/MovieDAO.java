@@ -98,6 +98,7 @@ public class MovieDAO {
             
             java.io.File dest = new java.io.File(dir, fileName);
             
+            // opens a web network stream to download image data from the URL
             java.net.URL url = new java.net.URL(imageUrl);
             try (java.io.InputStream in = url.openStream();
                  java.io.OutputStream out = new java.io.FileOutputStream(dest)) {

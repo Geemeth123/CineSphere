@@ -381,6 +381,7 @@ public class MovieDetailsController {
         }
     }
 
+    
     @FXML
     public void handleBack() {
         try {

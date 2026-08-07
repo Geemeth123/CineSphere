@@ -13,7 +13,7 @@ public class Movie {
     private String description;
     private List<Showtime> showtimes;
     
-    private int tmdbId = -1;
+    private int tmdbId = -1; //default value indicating no TMDB ID (manual)
     private String posterPath;
     private String bannerPath;
 
