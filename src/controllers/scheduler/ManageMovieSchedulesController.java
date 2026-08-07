@@ -1,5 +1,11 @@
 /**
- * handle user interactions and UI logic for the ManageMovieSchedules view.
+ * Manage Movie Schedules Controller (Scheduler Module)
+ * 
+ * Responsibility:
+ * 1. Displays existing scheduled shows for a specific movie in a visual grid layout.
+ * 2. Identifies and marks completed or past shows vs active future shows.
+ * 3. Allows cinema schedulers to cancel/delete upcoming shows if no active bookings exist.
+ * 4. Bridges navigation to `ScheduleMovie.fxml` to add new dates and showtimes.
  */
 package controllers.scheduler;
 
@@ -35,18 +41,25 @@ public class ManageMovieSchedulesController {
     private ShowDAO showDAO = new ShowDAO();
     private MovieDAO movieDAO = new MovieDAO();
 
+    /**
+     * Initializes the view with movie data and populates schedule cards grid.
+     */
     public void setMovie(Movie movie) {
         this.movie = movie;
         movieTitleLabel.setText(movie.getTitle());
         loadData();
     }
 
+    /**
+     * Fetches all scheduled showtimes for the movie and builds card elements.
+     */
     private void loadData() {
         schedulesGrid.getChildren().clear();
         
         int movieId = Integer.parseInt(movie.getId().replace("M", ""));
         java.util.List<Showtime> showtimes = showDAO.getShowsForMovie(movieId);
         
+        // Show empty placeholder message if no showtimes exist
         if (showtimes == null || showtimes.isEmpty()) {
             VBox emptyState = new VBox();
             emptyState.setAlignment(Pos.CENTER);
@@ -61,12 +74,16 @@ public class ManageMovieSchedulesController {
             return;
         }
 
+        // Render card for each showtime
         for (Showtime st : showtimes) {
             VBox card = createScheduleCard(st);
             schedulesGrid.getChildren().add(card);
         }
     }
     
+    /**
+     * Creates an individual schedule card displaying date, time, hall, available seats, and cancellation controls.
+     */
     private VBox createScheduleCard(Showtime st) {
         VBox card = new VBox();
         card.getStyleClass().add("movie-grid-card");
@@ -75,7 +92,7 @@ public class ManageMovieSchedulesController {
         card.setSpacing(15);
         card.setPadding(new Insets(25));
         
-        // Header (Date & Time)
+        // Header Row: Show Date and Time
         Label dateLbl = new Label(st.getRawDate());
         dateLbl.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
         
@@ -87,7 +104,7 @@ public class ManageMovieSchedulesController {
         HBox.setHgrow(spacer, Priority.ALWAYS);
         header.getChildren().addAll(spacer, timeLbl);
         
-        // Body (Hall & Seats)
+        // Body Details: Hall Name & Available Seats Count
         VBox details = new VBox(5);
         Label hallLbl = new Label("Hall: " + st.getHall());
         hallLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #475569;");
@@ -99,7 +116,7 @@ public class ManageMovieSchedulesController {
         Region vSpacer = new Region();
         VBox.setVgrow(vSpacer, Priority.ALWAYS);
         
-        // Check show status
+        // Check show status (Active, Cancelled, or Completed in past)
         boolean isCancelled = "CANCELLED".equalsIgnoreCase(st.getStatus());
         boolean isCompleted = "COMPLETED".equalsIgnoreCase(st.getStatus());
         
@@ -131,6 +148,9 @@ public class ManageMovieSchedulesController {
         return card;
     }
 
+    /**
+     * Confirms and deletes a showtime record from the database.
+     */
     private void handleCancelShow(Showtime st) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Cancel Show");
@@ -150,11 +170,17 @@ public class ManageMovieSchedulesController {
         }
     }
 
+    /**
+     * Navigates back to the main show scheduling overview.
+     */
     @FXML
     private void handleBack(ActionEvent event) {
         MainLayoutController.getInstance().loadPageDirectly("/views/scheduler/ShowScheduling.fxml");
     }
 
+    /**
+     * Navigates to the schedule creation form (`ScheduleMovie.fxml`) for the selected movie.
+     */
     @FXML
     private void handleAddSchedule(ActionEvent event) {
         try {
@@ -162,7 +188,7 @@ public class ManageMovieSchedulesController {
             Parent root = loader.load();
             
             ScheduleMovieController controller = loader.getController();
-            controller.setMovie(this.movie); // Pass the current movie to ScheduleMovie
+            controller.setMovie(this.movie);
             controller.setPreviousPage("/views/scheduler/ShowScheduling.fxml");
             
             controllers.MainLayoutController.getInstance().loadPageDirectly(root);

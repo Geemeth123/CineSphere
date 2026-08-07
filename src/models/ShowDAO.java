@@ -1,5 +1,9 @@
 /**
- * managing database operations for the Show entity.
+ * Show Data Access Object (ShowDAO)
+ * 
+ * Responsibility:
+ * Executes SQL queries against the `shows` table.
+ * Manages showtime scheduling, time overlap/collision checks, batch show inserts, and hall usage validations.
  */
 package models;
 
@@ -16,6 +20,9 @@ import utils.DBUtils;
 
 public class ShowDAO {
 
+    /**
+     * Retrieves all showtimes scheduled for today.
+     */
     public List<ShowTableItem> getTodayShows() {
         List<ShowTableItem> shows = new ArrayList<>();
         String sql = "SELECT s.id as show_id, m.title as movie_title, h.name as hall_name, " +
@@ -67,6 +74,9 @@ public class ShowDAO {
         return shows;
     }
 
+    /**
+     * Retrieves upcoming showtimes (today onwards) with seat booking metrics.
+     */
     public List<ShowTableItem> getUpcomingShows() {
         List<ShowTableItem> shows = new ArrayList<>();
         String sql = "SELECT s.id as show_id, m.title as movie_title, h.name as hall_name, " +
@@ -117,6 +127,9 @@ public class ShowDAO {
         return shows;
     }
 
+    /**
+     * Retrieves active movies with their associated future showtimes grouped by movie ID.
+     */
     public List<Movie> getActiveMoviesWithShowtimes() {
         Map<Integer, Movie> movieMap = new LinkedHashMap<>();
         
@@ -128,7 +141,7 @@ public class ShowDAO {
                      "JOIN halls h ON s.hall_id = h.id " +
                      "WHERE s.show_date >= CURDATE() AND s.status = 'SCHEDULED' " +
                      "ORDER BY m.id, s.show_date, s.show_time";
-                      
+                       
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -174,6 +187,9 @@ public class ShowDAO {
         return new ArrayList<>(movieMap.values());
     }
 
+    /**
+     * Retrieves all active movies regardless of whether showtimes exist.
+     */
     public List<Movie> getAllActiveMoviesWithShows() {
         Map<Integer, Movie> movieMap = new LinkedHashMap<>();
         
@@ -215,7 +231,6 @@ public class ShowDAO {
                 int showIdInt = rs.getInt("show_id");
                 if (!rs.wasNull()) {
                     String showStatus = rs.getString("show_status");
-                    // Skip cancelled shows
                     if ("CANCELLED".equals(showStatus)) {
                         continue;
                     }
@@ -227,7 +242,6 @@ public class ShowDAO {
                     int totalSeats = rs.getInt("total_seats");
                     int bookedSeats = rs.getInt("booked_seats");
                     int availableSeats = totalSeats - bookedSeats;
-                    // Format display time as "dd/MM HH:mm" 
                     String displayTime = date.substring(0, 5) + " " + time;
                     Showtime st = new Showtime(showId, displayTime, hall, availableSeats, totalSeats);
                     st.setRawDate(date);
@@ -243,6 +257,9 @@ public class ShowDAO {
         return new ArrayList<>(movieMap.values());
     }
 
+    /**
+     * Inserts a single show record into the database.
+     */
     public boolean addShow(int movieId, int hallId, String date, String time, String status) {
         String sql = "INSERT INTO shows (movie_id, hall_id, show_date, show_time, status) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBUtils.getConnection();
@@ -261,6 +278,9 @@ public class ShowDAO {
         }
     }
 
+    /**
+     * Checks if a target hall is already occupied during a requested time window.
+     */
     public boolean isHallOccupied(int hallId, String date, String start, String end, int movieId) {
         String sql = "SELECT COUNT(*) FROM shows s " +
                      "WHERE s.hall_id = ? AND s.show_date = ? AND s.status != 'CANCELLED' " +
@@ -294,6 +314,9 @@ public class ShowDAO {
         return false;
     }
 
+    /**
+     * Inserts batch show records for multiple dates and times in a single atomic transaction.
+     */
     public boolean addBatchShowsSpecificDates(int movieId, int hallId, List<java.time.LocalDate> dates, List<String> times) {
         String sql = "INSERT INTO shows (movie_id, hall_id, show_date, show_time, status) " +
                      "SELECT ?, ?, ?, ?, 'SCHEDULED' " +
@@ -310,8 +333,8 @@ public class ShowDAO {
                     for (String time : times) {
                         stmt.setInt(1, movieId);
                         stmt.setInt(2, hallId);
-                        stmt.setString(3, d.toString()); // YYYY-MM-DD
-                        stmt.setString(4, time + ":00"); // HH:mm:00
+                        stmt.setString(3, d.toString());
+                        stmt.setString(4, time + ":00");
                         stmt.setInt(5, movieId);
                         stmt.setInt(6, hallId);
                         stmt.setString(7, d.toString());
@@ -345,6 +368,9 @@ public class ShowDAO {
         }
     }
 
+    /**
+     * Updates an existing show's hall, date, time, or status.
+     */
     public boolean updateShow(int showId, int hallId, String date, String time, String status) {
         String sql = "UPDATE shows SET hall_id = ?, show_date = ?, show_time = ?, status = ? WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -363,6 +389,9 @@ public class ShowDAO {
         return false;
     }
 
+    /**
+     * Deletes a show record by ID.
+     */
     public boolean deleteShow(int showId) {
         String sql = "DELETE FROM shows WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -376,6 +405,9 @@ public class ShowDAO {
         return false;
     }
 
+    /**
+     * Checks if a hall has any upcoming scheduled shows.
+     */
     public boolean hasUpcomingShows(int hallId) {
         String sql = "SELECT COUNT(*) FROM shows WHERE hall_id = ? AND show_date >= CURRENT_DATE AND status != 'CANCELLED'";
         try (Connection conn = DBUtils.getConnection();
@@ -392,6 +424,9 @@ public class ShowDAO {
         return false;
     }
 
+    /**
+     * Checks if a hall has active non-cancelled shows (used to prevent deleting active halls).
+     */
     public boolean hasActiveShowsForHall(int hallId) {
         String sql = "SELECT COUNT(*) FROM shows WHERE hall_id = ? AND status != 'CANCELLED'";
         try (Connection conn = DBUtils.getConnection();
@@ -408,6 +443,9 @@ public class ShowDAO {
         return false;
     }
 
+    /**
+     * Retrieves all showtimes for a specific movie ID.
+     */
     public List<Showtime> getShowsForMovie(int movieId) {
         List<Showtime> showtimes = new ArrayList<>();
         String sql = "SELECT s.id as show_id, DATE_FORMAT(s.show_date, '%d/%m/%Y') as show_date, DATE_FORMAT(s.show_time, '%H:%i') as show_time, s.status as show_status, " +

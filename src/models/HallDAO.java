@@ -1,5 +1,9 @@
 /**
- * managing database operations for the Hall entity.
+ * Hall Data Access Object (HallDAO)
+ * 
+ * Responsibility:
+ * Executes SQL queries against the `halls` and `seats` tables.
+ * Handles hall creation, layout updates, maintenance seat statuses, and auto-generation of seat grids.
  */
 package models;
 
@@ -13,7 +17,6 @@ import java.util.List;
 
 import utils.DBUtils;
 
-
 public class HallDAO {
 
     private static boolean schemaInitialized = false;
@@ -25,7 +28,9 @@ public class HallDAO {
         }
     }
 
-
+    /**
+     * Ensures database schema migrations (adds columns `type`, `is_kids_hall`, and seat `status` if missing).
+     */
     private void initializeSchema() {
         try (Connection conn = DBUtils.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -49,6 +54,9 @@ public class HallDAO {
         }
     }
 
+    /**
+     * Retrieves all cinema halls from the database.
+     */
     public List<Hall> getAllHalls() {
         List<Hall> halls = new ArrayList<>();
         String query = "SELECT * FROM halls";
@@ -65,6 +73,9 @@ public class HallDAO {
         return halls;
     }
 
+    /**
+     * Retrieves a single hall record by its ID.
+     */
     public Hall getHallById(int id) {
         String query = "SELECT * FROM halls WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -82,12 +93,15 @@ public class HallDAO {
         return null;
     }
 
+    /**
+     * Creates a new hall record and triggers the database stored procedure to generate individual seat rows/columns.
+     */
     public boolean addHall(Hall hall) {
         String query = "INSERT INTO halls (name, type, total_seats, seat_rows, seat_columns, status, is_kids_hall) VALUES (?, ?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
             conn = DBUtils.getConnection();
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false); // Start transaction
 
             try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, hall.getName());
@@ -104,7 +118,7 @@ public class HallDAO {
                         if (generatedKeys.next()) {
                             hall.setId(generatedKeys.getInt(1));
 
-                            //generate seats
+                            // Execute stored procedure to generate individual seats for this hall
                             generateSeatsForHall(conn, hall.getId(), hall.getSeatRows(), hall.getSeatColumns());
 
                             conn.commit();
@@ -138,6 +152,9 @@ public class HallDAO {
         }
     }
 
+    /**
+     * Updates an existing hall's properties in the database.
+     */
     public boolean updateHall(Hall hall) {
         String query = "UPDATE halls SET name = ?, type = ?, total_seats = ?, seat_rows = ?, seat_columns = ?, status = ?, is_kids_hall = ? WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -159,6 +176,9 @@ public class HallDAO {
         return false;
     }
 
+    /**
+     * Deletes a hall record from the database.
+     */
     public boolean deleteHall(int id) {
         String query = "DELETE FROM halls WHERE id = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -172,6 +192,9 @@ public class HallDAO {
         return false;
     }
     
+    /**
+     * Invokes database stored procedure `generate_hall_seats` to populate individual seat rows and columns.
+     */
     private void generateSeatsForHall(Connection conn, int hallId, int rows, int cols) throws SQLException {
         String query = "CALL generate_hall_seats(?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -182,6 +205,9 @@ public class HallDAO {
         }
     }
 
+    /**
+     * Maps database ResultSet row to a Hall model object.
+     */
     private Hall mapResultSetToHall(ResultSet rs) throws SQLException {
         boolean hasType = true;
         boolean hasKids = true;
@@ -201,6 +227,9 @@ public class HallDAO {
         );
     }
 
+    /**
+     * Fetches a list of seat numbers currently set to MAINTENANCE status (e.g. "A1", "B5").
+     */
     public List<String> getMaintenanceSeats(int hallId) {
         List<String> maintenanceSeats = new ArrayList<>();
         String sql = "SELECT row_label, seat_number FROM seats WHERE hall_id = ? AND status = 'MAINTENANCE'";
@@ -218,20 +247,23 @@ public class HallDAO {
         return maintenanceSeats;
     }
 
+    /**
+     * Updates seat status flags (resets all to AVAILABLE, then sets listed seat numbers to MAINTENANCE).
+     */
     public boolean updateMaintenanceSeats(int hallId, List<String> maintenanceSeats) {
         Connection conn = null;
         try {
             conn = DBUtils.getConnection();
             conn.setAutoCommit(false);
             
-            // Reset all seats 
+            // Step 1: Reset all seats for this hall to AVAILABLE
             String resetSql = "UPDATE seats SET status = 'AVAILABLE' WHERE hall_id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(resetSql)) {
                 stmt.setInt(1, hallId);
                 stmt.executeUpdate();
             }
             
-            // seats to MAINTENANCE
+            // Step 2: Set designated seats to MAINTENANCE
             if (maintenanceSeats != null && !maintenanceSeats.isEmpty()) {
                 String updateSql = "UPDATE seats SET status = 'MAINTENANCE' WHERE hall_id = ? AND row_label = ? AND seat_number = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(updateSql)) {
